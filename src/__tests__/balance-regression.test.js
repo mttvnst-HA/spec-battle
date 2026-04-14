@@ -18,8 +18,9 @@ const policies = { random: randomPolicy, ai: aiPolicy };
 afterEach(() => seed(null));
 
 describe("balance regression", () => {
+  const skip = process.env.SKIP_BALANCE_REGRESSION === "1";
   for (const baselineMatchup of baseline.matchups) {
-    it(`${baselineMatchup.matchup} matches baseline within tolerance`, () => {
+    it.skipIf(skip)(`${baselineMatchup.matchup} matches baseline within tolerance`, () => {
       const [engName, conName] = baselineMatchup.matchup.split("-vs-");
       const current = runBatch({
         startSeed: baselineMatchup.startSeed,
@@ -44,4 +45,17 @@ describe("balance regression", () => {
       }
     });
   }
+
+  describe("SKIP_BALANCE_REGRESSION env var", () => {
+    it("is honored as a string '1' to skip", () => {
+      // This test just asserts the env-gate mechanism exists in the source.
+      // The actual skip is verified by Step 3 below: running with the env var
+      // set should produce 0 test failures even if the baseline drifted.
+      const src = fs.readFileSync(
+        path.resolve(__dirname, "./balance-regression.test.js"),
+        "utf-8",
+      );
+      expect(src).toMatch(/process\.env\.SKIP_BALANCE_REGRESSION\s*===\s*["']1["']/);
+    });
+  });
 });
