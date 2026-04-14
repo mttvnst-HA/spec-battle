@@ -102,6 +102,7 @@ export function buildPrompt({ currentState, currentReport, history, retryError }
       const entry = { iteration: h.iteration, bundle: h.bundle, outcome: h.outcome };
       if (h.worstDistanceBefore !== undefined) entry.worstDistanceBefore = +h.worstDistanceBefore.toFixed(4);
       if (h.worstDistanceAfter !== undefined) entry.worstDistanceAfter = +h.worstDistanceAfter.toFixed(4);
+      if (h.worstDistanceCandidate !== undefined) entry.worstDistanceCandidate = +h.worstDistanceCandidate.toFixed(4);
       return entry;
     }), null, 2));
     dynamicParts.push("```");
