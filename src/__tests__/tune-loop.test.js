@@ -421,4 +421,99 @@ describe("runLoop", () => {
       expect(notImp.worstDistanceAfter).toBeUndefined();
     });
   });
+
+  describe("exhausted exit surfaces proposer.lastError", () => {
+    it("writes the error into the summary and includes it in the return value", () => {
+      const baseReport = { matchups: [
+        { matchup: "a", engineerWinRate: 0.5, avgTurns: 10, moveFrequency: { engineer: {}, contractor: {} } },
+        { matchup: "b", engineerWinRate: 0.5, avgTurns: 10, moveFrequency: { engineer: {}, contractor: {} } },
+      ] };
+      const writes = {};
+      const proposer = {
+        lastError: "ETIMEDOUT: claude timed out after 120000ms",
+        propose: () => null,
+      };
+      const result = runLoop({
+        runSim: () => baseReport,
+        runTests: () => ({ ok: true }),
+        git: { commitAll: () => {} },
+        fs: {
+          existsSync: () => false,
+          writeFileSync: (path, content) => { writes[path] = content; },
+          unlinkSync: () => {},
+        },
+        clock: { now: () => 0 },
+        proposer,
+        apply: { write: () => {}, revert: () => {} },
+        convergence: { isConverged: () => false, isImprovement: () => false },
+        maxIterations: 5,
+      });
+      expect(result.reason).toBe("exhausted");
+      expect(result.lastError).toBe("ETIMEDOUT: claude timed out after 120000ms");
+      // Summary file contains the error section.
+      expect(writes["tuning-summary.md"]).toMatch(/## Last transport error/);
+      expect(writes["tuning-summary.md"]).toContain("ETIMEDOUT: claude timed out after 120000ms");
+    });
+
+    it("does NOT surface lastError on non-exhausted exits", () => {
+      // Converged/budget-iters/budget-wall exits don't have a transport-error
+      // interpretation even if proposer has lastError set.
+      const baseReport = { matchups: [
+        { matchup: "a", engineerWinRate: 0.5, avgTurns: 10, moveFrequency: { engineer: {}, contractor: {} } },
+        { matchup: "b", engineerWinRate: 0.5, avgTurns: 10, moveFrequency: { engineer: {}, contractor: {} } },
+      ] };
+      const writes = {};
+      const proposer = {
+        lastError: "stale error from a prior call",
+        propose: () => ({ ok: true, bundle: { rule: "r", summary: "s",
+          targets: [{ target: "GAME.critRate", before: 0.12, after: 0.14 }] } }),
+      };
+      const result = runLoop({
+        runSim: () => baseReport,
+        runTests: () => ({ ok: true }),
+        git: { commitAll: () => {} },
+        fs: {
+          existsSync: () => false,
+          writeFileSync: (path, content) => { writes[path] = content; },
+          unlinkSync: () => {},
+        },
+        clock: { now: () => 0 },
+        proposer,
+        apply: { write: () => {}, revert: () => {} },
+        convergence: { isConverged: () => false, isImprovement: () => false },
+        maxIterations: 1,
+      });
+      expect(result.reason).toBe("budget-iters");
+      expect(result.lastError).toBeNull();
+      expect(writes["tuning-summary.md"]).not.toMatch(/## Last transport error/);
+    });
+
+    it("handles proposers without lastError (heuristic adapter) gracefully", () => {
+      const baseReport = { matchups: [
+        { matchup: "a", engineerWinRate: 0.5, avgTurns: 10, moveFrequency: { engineer: {}, contractor: {} } },
+        { matchup: "b", engineerWinRate: 0.5, avgTurns: 10, moveFrequency: { engineer: {}, contractor: {} } },
+      ] };
+      const writes = {};
+      // proposer does NOT expose lastError — simulates the heuristic adapter.
+      const proposer = { propose: () => null };
+      const result = runLoop({
+        runSim: () => baseReport,
+        runTests: () => ({ ok: true }),
+        git: { commitAll: () => {} },
+        fs: {
+          existsSync: () => false,
+          writeFileSync: (path, content) => { writes[path] = content; },
+          unlinkSync: () => {},
+        },
+        clock: { now: () => 0 },
+        proposer,
+        apply: { write: () => {}, revert: () => {} },
+        convergence: { isConverged: () => false, isImprovement: () => false },
+        maxIterations: 5,
+      });
+      expect(result.reason).toBe("exhausted");
+      expect(result.lastError).toBeNull();
+      expect(writes["tuning-summary.md"]).not.toMatch(/## Last transport error/);
+    });
+  });
 });

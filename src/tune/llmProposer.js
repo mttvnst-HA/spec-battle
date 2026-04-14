@@ -308,7 +308,9 @@ export function parseBundle(rawCliOutput, currentState) {
  * @returns {{ propose(report, iteration, history, opts?): ProposeResult }}
  */
 export function createLlmProposer({ transport, getCurrentState = readConfig }) {
+  let lastError = null;
   return {
+    get lastError() { return lastError; },
     propose(report, iteration, history, opts = {}) {
       const currentState = getCurrentState();
       const prompt = buildPrompt({
@@ -323,10 +325,15 @@ export function createLlmProposer({ transport, getCurrentState = readConfig }) {
         raw = transport.send(prompt);
       } catch (err) {
         // Non-recoverable transport failure (CLI missing, timeout, etc.).
-        // Return null so the loop stops with reason "exhausted".
+        // Surface the error for the loop's exhausted-exit summary, then
+        // return null so the loop stops with reason "exhausted".
+        lastError = (err && err.message) ? err.message : String(err);
         return null;
       }
-
+      // Transport success — clear any prior error so the loop doesn't
+      // surface stale state if a later iteration exhausts for a different
+      // reason (null from exhausted budget, etc.).
+      lastError = null;
       return parseBundle(raw, currentState);
     },
   };

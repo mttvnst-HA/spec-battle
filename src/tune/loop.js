@@ -46,11 +46,18 @@ export function runLoop({
 
   const finalize = (reason) => {
     if (fs.existsSync(abortFile)) fs.unlinkSync(abortFile);
+    // Surface the most recent transport error (if any) on "exhausted" exits.
+    // Proposers without lastError (heuristic adapter) expose undefined; treat as null.
+    const lastError = (reason === "exhausted" && proposer.lastError) ? proposer.lastError : null;
     if (!dryRun) {
-      fs.writeFileSync(summaryFile, summarizeHistory(history));
+      let summary = summarizeHistory(history);
+      if (lastError) {
+        summary += `\n## Last transport error\n\n${lastError}\n`;
+      }
+      fs.writeFileSync(summaryFile, summary);
       fs.writeFileSync(nextBaselineFile, JSON.stringify(current, null, 2) + "\n");
     }
-    return { reason, history, best: current };
+    return { reason, history, best: current, lastError };
   };
 
   // Runs one propose call with optional retryError. Returns whatever the
