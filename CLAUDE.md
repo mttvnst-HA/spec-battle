@@ -65,15 +65,37 @@ This game is set in the world of NAVFAC (Naval Facilities Engineering Systems Co
 - Engineers do NOT submit RFIs. RFIs are a contractor weapon.
 - The word "SHALL" in federal specs is a mandatory obligation, not a suggestion
 
+## Content Pipeline
+
+All game content (quotes, moves, intros, game over text) lives in `content/` as editable JSON. See `content/README.md` for schemas and contribution guide.
+
+- **Add a quote:** edit `content/quotes/engineer.json` or `contractor.json`
+- **Add an intro:** add an object to `content/intros.json`
+- **Add game over text:** add a string to `content/game-over.json`
+- **Add a move:** add to `content/moves/*.json` + matching quotes
+
+`src/data/content-loader.js` imports all JSON, resolves color names to hex, and merges quotes into move definitions. `characters.js` re-exports from the content loader.
+
 ## Reference Document
 
-The game bible (research on authentic dialogue, tactics, and scenarios) was developed in the originating Claude.ai conversation. Key sources include CMAA RFI impact studies, FAR clause references, USACE three-phase inspection systems, and real construction industry humor.
+The game bible lives at `reference/ktr-vs-engineer-bible.md`. Sources include CMAA RFI impact studies, FAR clause references, USACE three-phase inspection systems, and real construction industry humor.
 
 ## Development Commands
 
 ```bash
 npm install
-npm run dev     # Dev server at localhost:5173
-npm run build   # Production build to dist/
-npm test        # Run test suite (vitest)
+npm run dev           # Dev server at localhost:5173
+npm run build         # Production build to dist/
+npm test              # Run all 208 tests (vitest)
+npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 ```
+
+### Test Structure
+
+| File | Purpose |
+|------|---------|
+| `content-integrity` | Validates JSON schemas, required fields, no duplicate quotes |
+| `content-loader` | Verifies character stats, quote merging, color resolution |
+| `logic` | Damage calc, status effects, crits, AI decisions |
+| `reducer` | All action types, turn flow, win detection, MP regen |
+| `constants` | Game balance snapshots, utility functions |
