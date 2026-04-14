@@ -2,13 +2,27 @@ import { useReducer, useEffect } from "react";
 import { C, PIXEL_FONT, STATUS, TIMINGS } from "../constants.js";
 import { ENGINEER_PIXELS, CONTRACTOR_PIXELS } from "../data/sprites.js";
 import { ENGINEER, CONTRACTOR } from "../data/characters.js";
-import { reducer, initState } from "../game/reducer.js";
+import { reducer, initState, INTRO_SEQUENCE } from "../game/reducer.js";
 import { PixelSprite } from "./PixelSprite.jsx";
 import { StatBox } from "./StatBox.jsx";
 import { LogBox } from "./LogBox.jsx";
 
 export function BattleScreen({ onEnd }) {
   const [state, dispatch] = useReducer(reducer, null, initState);
+
+  // Intro sequence
+  useEffect(() => {
+    if (state.turn !== "intro") return;
+    const timers = [];
+    let cumulative = 0;
+    INTRO_SEQUENCE.forEach((step, i) => {
+      cumulative += step.delay;
+      timers.push(setTimeout(() => dispatch({ type: "INTRO_LOG", entry: step.entry }), cumulative));
+    });
+    cumulative += 800;
+    timers.push(setTimeout(() => dispatch({ type: "INTRO_DONE" }), cumulative));
+    return () => timers.forEach(clearTimeout);
+  }, [state.turn]);
 
   useEffect(() => {
     if (state.turn === "enemy" && state.busy && !state.winner) {
@@ -55,7 +69,7 @@ export function BattleScreen({ onEnd }) {
         fontFamily: PIXEL_FONT, fontSize: 9, textAlign: "center",
         color: state.turn === "player" ? C.bright : C.orange, letterSpacing: 1, padding: "4px 0",
       }}>
-        {state.winner ? "" : isStunned ? "!! STUNNED !!" : state.turn === "player" ? ">> YOUR TURN <<" : "... CONTRACTOR is reviewing the contract ..."}
+        {state.winner ? "" : state.turn === "intro" ? "" : isStunned ? "!! STUNNED !!" : state.turn === "player" ? ">> YOUR TURN <<" : "... CONTRACTOR is reviewing the contract ..."}
       </div>
 
       {/* Log */}

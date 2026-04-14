@@ -2,13 +2,20 @@ import { C, STATUS, clamp } from "../constants.js";
 import { ENGINEER, CONTRACTOR } from "../data/characters.js";
 import { resolveMove, pickAIMove } from "./logic.js";
 
+export const INTRO_SEQUENCE = [
+  { entry: { text: "A wild CONTRACTOR appeared on the jobsite!", color: C.yellow }, delay: 0 },
+  { entry: { text: '  "We\'re here in a spirit of partnering and collaboration."', color: C.white }, delay: 1200 },
+  { entry: { text: "CONTRACTOR slides a submittal package across the table...", color: C.orange }, delay: 2000 },
+  { entry: { text: "The QC stamp is from a company that no longer exists.", color: C.orange }, delay: 1800 },
+  { entry: { text: "Choose your response, ENGINEER.", color: C.bright }, delay: 1500 },
+];
+
 export const initState = () => ({
   engHp: ENGINEER.maxHp, engMp: ENGINEER.maxMp,
   conHp: CONTRACTOR.maxHp, conMp: CONTRACTOR.maxMp,
   engStatus: null, conStatus: null,
-  log: [{ text: "A wild CONTRACTOR appeared on the jobsite!", color: C.yellow },
-        { text: '  "We\'re here in a spirit of partnering and collaboration."', color: C.white }],
-  turn: "player", busy: false,
+  log: [],
+  turn: "intro", busy: false,
   engShake: 0, conShake: 0, engFlash: 0, conFlash: 0,
   winner: null,
 });
@@ -21,6 +28,14 @@ function checkWinner(s, isPlayer) {
 
 export function reducer(state, action) {
   switch (action.type) {
+    case "INTRO_LOG": {
+      if (state.turn !== "intro") return state;
+      return { ...state, log: [...state.log, action.entry] };
+    }
+    case "INTRO_DONE": {
+      if (state.turn !== "intro") return state;
+      return { ...state, turn: "player" };
+    }
     case "PLAYER_STUNNED": {
       if (state.turn !== "player" || state.engStatus !== STATUS.STUNNED) return state;
       return {
