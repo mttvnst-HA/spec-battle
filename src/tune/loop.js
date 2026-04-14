@@ -1,23 +1,23 @@
 // Main tuning loop. All I/O is injected — the test never touches the filesystem
 // or shells out. Production callers wire in real fs, real child_process, etc.
 
-function summarizeHistory(history, accepted) {
-  // accepted is a parallel array of booleans
+function worstDistance(report) {
+  return Math.max(...report.matchups.map((m) => Math.abs(m.engineerWinRate - 0.5)));
+}
+
+function summarizeHistory(history) {
   const lines = [
     "# Tuning Summary",
     "",
-    "| iter | worst (pp from 50%) | rule | target | before → after | accepted |",
-    "|------|---------------------|------|--------|----------------|----------|",
+    "| iter | outcome | worst (pp) | rule | summary |",
+    "|------|---------|-----------|------|---------|",
   ];
-  for (let i = 0; i < history.length; i++) {
-    const h = history[i];
-    const worst = Math.max(...h.report.matchups.map((m) => Math.abs(m.engineerWinRate - 0.5)));
-    const worstPp = (worst * 100).toFixed(2);
-    const prop = h.proposal;
-    const propCell = prop
-      ? `${prop.rule} | ${prop.target} | ${JSON.stringify(prop.before)} → ${JSON.stringify(prop.after)}`
-      : "— | — | —";
-    lines.push(`| ${i} | ${worstPp} | ${propCell} | ${accepted[i] ? "yes" : "no"} |`);
+  for (const h of history) {
+    const worstBefore = h.worstDistanceBefore ?? worstDistance(h.report);
+    const worstPp = (worstBefore * 100).toFixed(2);
+    const rule = h.bundle?.rule ?? "—";
+    const summary = h.bundle?.summary ?? "—";
+    lines.push(`| ${h.iteration} | ${h.outcome} | ${worstPp} | ${rule} | ${summary} |`);
   }
   return lines.join("\n") + "\n";
 }
@@ -33,24 +33,25 @@ export function runLoop({
   log = () => {},
 }) {
   const start = clock.now();
-  const history = [];   // [{ report, proposal }]
-  const accepted = [];  // parallel booleans
+  const history = [];
   const iterLimit = dryRun ? Math.min(2, maxIterations) : maxIterations;
 
   // Baseline sim (iteration 0).
   const baseline = runSim();
-  history.push({ report: baseline, proposal: null });
-  accepted.push(true);
+  history.push({ iteration: 0, bundle: null, outcome: "baseline", report: baseline });
   let current = baseline;
 
   const finalize = (reason) => {
     if (fs.existsSync(abortFile)) fs.unlinkSync(abortFile);
     if (!dryRun) {
-      fs.writeFileSync(summaryFile, summarizeHistory(history, accepted));
+      fs.writeFileSync(summaryFile, summarizeHistory(history));
       fs.writeFileSync(nextBaselineFile, JSON.stringify(current, null, 2) + "\n");
     }
     return { reason, history, best: current };
   };
+
+  // Runs one propose call with optional retryError; returns ProposeResult.
+  const callPropose = (iter, opts) => proposer.propose(current, iter - 1, history, opts);
 
   for (let iter = 1; ; iter++) {
     if (fs.existsSync(abortFile)) return finalize("aborted");
@@ -58,33 +59,78 @@ export function runLoop({
     if (iter > iterLimit) return finalize("budget-iters");
     if (convergence.isConverged(history.map((h) => h.report))) return finalize("converged");
 
-    // Proposer uses 0-based iteration index (commit labels use 1-based `iter`).
-    const proposal = proposer.propose(current, iter - 1);
-    if (!proposal) return finalize("exhausted");
+    let result = callPropose(iter, {});
+    if (result === null) return finalize("exhausted");
+    if (result.ok === false) {
+      log(`iter ${iter}: invalid output (${result.error}) — retrying once`);
+      result = callPropose(iter, { retryError: result.error });
+      if (result === null || result.ok === false) {
+        const err = result === null ? "proposer returned null on retry" : result.error;
+        log(`iter ${iter}: retry also failed (${err}); skipping iteration`);
+        history.push({
+          iteration: iter,
+          bundle: null,
+          outcome: "invalid-output",
+          report: current,
+          worstDistanceBefore: worstDistance(current),
+        });
+        continue;
+      }
+    }
+    const bundle = result.bundle;
+    log(`iter ${iter}: ${bundle.summary}`);
 
-    log(`iter ${iter}: ${proposal.summary}`);
-
-    if (!dryRun) apply.write(proposal);
+    if (!dryRun) {
+      try {
+        apply.write(bundle);
+      } catch (err) {
+        log(`iter ${iter}: write failed (${err.message}); skipping`);
+        history.push({
+          iteration: iter,
+          bundle,
+          outcome: "write-failed",
+          report: current,
+          worstDistanceBefore: worstDistance(current),
+        });
+        continue;
+      }
+    }
 
     const tests = runTests();
     if (!tests.ok) {
       log(`iter ${iter}: tests failed, reverting`);
-      if (!dryRun) apply.revert(proposal);
-      history.push({ report: current, proposal });
-      accepted.push(false);
+      if (!dryRun) apply.revert(bundle);
+      history.push({
+        iteration: iter,
+        bundle,
+        outcome: "tests-failed",
+        report: current,
+        worstDistanceBefore: worstDistance(current),
+      });
       continue;
     }
 
     const candidate = runSim();
     if (convergence.isImprovement(current, candidate)) {
-      if (!dryRun) git.commitAll(`tune(iter-${iter}): ${proposal.summary}`);
-      history.push({ report: candidate, proposal });
-      accepted.push(true);
+      if (!dryRun) git.commitAll(`tune(iter-${iter}): ${bundle.summary}`);
+      history.push({
+        iteration: iter,
+        bundle,
+        outcome: "accepted",
+        report: candidate,
+        worstDistanceBefore: worstDistance(current),
+        worstDistanceAfter: worstDistance(candidate),
+      });
       current = candidate;
     } else {
-      if (!dryRun) apply.revert(proposal);
-      history.push({ report: current, proposal });
-      accepted.push(false);
+      if (!dryRun) apply.revert(bundle);
+      history.push({
+        iteration: iter,
+        bundle,
+        outcome: "not-improvement",
+        report: current,
+        worstDistanceBefore: worstDistance(current),
+      });
     }
   }
 }
