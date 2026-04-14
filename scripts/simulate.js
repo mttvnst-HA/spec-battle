@@ -24,7 +24,7 @@ function flag(name, fallback) {
   return n;
 }
 
-const count = flag("count", 200);
+const count = flag("count", 1000);
 const startSeed = flag("seed", 1);
 
 if (!Number.isInteger(count) || count <= 0) {

@@ -50,7 +50,7 @@ const maxIterations = flag("max-iters", 30);
 const maxWallMs = flag("max-wall-ms", 45 * 60 * 1000);
 
 function runSim() {
-  const count = 200;
+  const count = 1000;
   const startSeed = 1;
   const matchups = [
     runBatch({ startSeed, count, engPolicy: randomPolicy, conPolicy: randomPolicy,
