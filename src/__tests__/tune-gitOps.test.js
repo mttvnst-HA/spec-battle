@@ -26,6 +26,19 @@ describe("makeGit", () => {
     expect(calls[1]).toContain(`\\"Y\\"`);
   });
 
+  it("escapes shell metacharacters (backticks, $, newlines) to prevent injection", () => {
+    const calls = [];
+    const exec = vi.fn((cmd) => { calls.push(cmd); return ""; });
+    const git = makeGit({ exec });
+
+    git.commitAll("msg `whoami` and $(id)\nline2");
+
+    expect(calls[1]).toContain("\\`whoami\\`");
+    expect(calls[1]).toContain("\\$(id)");
+    expect(calls[1]).toContain("\\n");
+    expect(calls[1]).not.toMatch(/\n/); // no literal newline in the shell command
+  });
+
   it("propagates exec errors", () => {
     const exec = () => { throw new Error("git: command not found"); };
     const git = makeGit({ exec });

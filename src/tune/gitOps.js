@@ -9,7 +9,12 @@ export function makeGit({ exec = defaultExec } = {}) {
   return {
     commitAll(message) {
       exec("git add -A");
-      const escaped = message.replace(/"/g, '\\"');
+      const escaped = message
+        .replace(/\\/g, "\\\\")
+        .replace(/"/g, '\\"')
+        .replace(/`/g, "\\`")
+        .replace(/\$/g, "\\$")
+        .replace(/\n/g, "\\n");
       exec(`git commit -m "${escaped}"`);
     },
   };
