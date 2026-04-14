@@ -11,6 +11,9 @@
     "sim": "node scripts/simulate.js",
     "sim:update-baseline": "node scripts/simulate.js --update-baseline"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
