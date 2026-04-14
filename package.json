@@ -12,7 +12,7 @@
     "sim:update-baseline": "node scripts/simulate.js --update-baseline",
     "tune": "node scripts/tune.js",
     "tune:dry-run": "node scripts/tune.js --dry-run",
-    "tune:llm": "TUNE_PROPOSER=llm node scripts/tune.js"
+    "tune:llm": "node scripts/tune.js --llm"
   },
   "engines": {
     "node": ">=22"
