@@ -1,21 +1,30 @@
 #!/usr/bin/env node
-// CLI for the heuristic tuning loop.
+// CLI for the tuning loop — selects heuristic (default) or LLM proposer via TUNE_PROPOSER.
 //
 // Usage:
-//   node scripts/tune.js                         # full run with defaults
-//   node scripts/tune.js --dry-run               # 2-iteration smoke, no writes, no commits
-//   node scripts/tune.js --max-iters=20          # cap iterations
-//   node scripts/tune.js --max-wall-ms=300000    # cap wall-clock
+//   node scripts/tune.js                                  # heuristic, defaults
+//   node scripts/tune.js --dry-run                        # 2-iter smoke, no writes
+//   node scripts/tune.js --max-iters=20                   # cap iterations
+//   node scripts/tune.js --max-wall-ms=300000             # cap wall-clock
+//   TUNE_PROPOSER=llm node scripts/tune.js                # LLM path
+//   TUNE_PROPOSER=llm node scripts/tune.js --dry-run      # LLM dry-run (real CLI calls, no writes)
+//
+// Env vars:
+//   TUNE_PROPOSER    — "heuristic" (default) | "llm"
+//   TUNE_MODEL       — LLM model ID (default claude-sonnet-4-6); only used when proposer=llm
+//   TUNE_TIMEOUT_MS  — per-CLI-call timeout (default 120000); only used when proposer=llm
 
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import { runBatch } from "../src/sim/runBatch.js";
 import { randomPolicy, aiPolicy } from "../src/sim/policies.js";
 import { runLoop } from "../src/tune/loop.js";
-import { propose } from "../src/tune/proposer.js";
-import { writeProposal, revertProposal } from "../src/tune/applyProposal.js";
+import { propose as heuristicPropose } from "../src/tune/proposer.js";
+import { writeBundle, revertBundle } from "../src/tune/applyProposal.js";
 import { isConverged, isImprovement } from "../src/tune/convergence.js";
 import { makeGit } from "../src/tune/gitOps.js";
+import { createLlmProposer } from "../src/tune/llmProposer.js";
+import { createCliTransport } from "../src/tune/claudeTransport.js";
 
 function flag(name, fallback) {
   const arg = process.argv.find((a) => a.startsWith(`--${name}=`));
@@ -28,8 +37,8 @@ function flag(name, fallback) {
   return n;
 }
 const dryRun = process.argv.includes("--dry-run");
-const maxIterations = flag("max-iters", 50);
-const maxWallMs = flag("max-wall-ms", 15 * 60 * 1000);
+const maxIterations = flag("max-iters", 30);
+const maxWallMs = flag("max-wall-ms", 45 * 60 * 1000);
 
 function runSim() {
   const count = 200;
@@ -55,6 +64,37 @@ function runTests() {
   }
 }
 
+// Adapter: wraps the heuristic single-Proposal output into the bundle-shaped
+// ProposeResult the loop expects. Ignores history/opts.
+function createHeuristicAdapter(heuristicProposeFn) {
+  return {
+    propose(report, iteration /* , history, opts */) {
+      const p = heuristicProposeFn(report, iteration);
+      if (!p) return null;
+      return {
+        ok: true,
+        bundle: {
+          rule: p.rule,
+          summary: p.summary,
+          targets: [{ target: p.target, before: p.before, after: p.after }],
+        },
+      };
+    },
+  };
+}
+
+function selectProposer() {
+  const kind = process.env.TUNE_PROPOSER ?? "heuristic";
+  if (kind === "heuristic") return createHeuristicAdapter(heuristicPropose);
+  if (kind === "llm") {
+    const model = process.env.TUNE_MODEL ?? "claude-sonnet-4-6";
+    const timeoutMs = Number(process.env.TUNE_TIMEOUT_MS ?? 120_000);
+    return createLlmProposer({ transport: createCliTransport({ model, timeoutMs }) });
+  }
+  console.error(`Invalid TUNE_PROPOSER='${kind}' (expected 'heuristic' or 'llm')`);
+  process.exit(1);
+}
+
 // Graceful stop on SIGINT/SIGTERM: write the abort file; the next iteration
 // check-top will catch it.
 for (const sig of ["SIGINT", "SIGTERM"]) {
@@ -68,8 +108,8 @@ const result = runLoop({
   runSim, runTests,
   git: makeGit(),
   fs, clock: { now: () => Date.now() },
-  proposer: { propose },
-  apply: { write: writeProposal, revert: revertProposal },
+  proposer: selectProposer(),
+  apply: { write: writeBundle, revert: revertBundle },
   convergence: { isConverged, isImprovement },
   maxIterations, maxWallMs,
   dryRun,
