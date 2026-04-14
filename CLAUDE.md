@@ -12,14 +12,32 @@ A turn-based RPG where a federal construction ENGINEER battles a CONTRACTOR usin
 
 ## Architecture
 
-Single-file game component at `src/App.jsx`. Key sections:
+Modular file structure:
 
-- **Pixel sprite data** - character appearance defined as string arrays mapped to color palettes
-- **Move definitions** - each move has name, emoji, description, damage range, MP cost, effect type, and context-sensitive quote arrays
-- **Reducer** - pure function handling PLAYER_MOVE, ENEMY_MOVE, RESET actions
-- **resolveMove()** - calculates damage, crits, status effects, selects quotes
-- **pickAIMove()** - contractor AI with situational logic (heals when low, finishes when enemy low, uses defense when weakened)
-- **Screen components** - TitleScreen, BattleScreen, GameOver
+```
+src/
+  App.jsx              -- Root component (screen state machine, global CSS keyframes)
+  constants.js         -- Colors (C), font (PIXEL_FONT), timing/game config, STATUS enum, utils
+  data/
+    characters.js      -- ENGINEER & CONTRACTOR (stats, moves, quotes, mpRegen)
+    sprites.js         -- Pixel sprite arrays + color map
+  game/
+    logic.js           -- calculateDamage(), rollStatusEffect(), resolveMove(), pickAIMove()
+    reducer.js         -- Game reducer (PLAYER_MOVE, PLAYER_STUNNED, ENEMY_MOVE, RESET)
+  components/
+    PixelSprite.jsx    -- SVG sprite renderer with shake/flash animations
+    StatBox.jsx        -- HP/MP bars + character stat display
+    LogBox.jsx         -- Scrollable battle log
+    BattleScreen.jsx   -- Main battle UI + turn management effects
+    TitleScreen.jsx    -- Title screen with blinking prompt
+    GameOver.jsx       -- Victory/defeat screen
+```
+
+Key design decisions:
+- Game balance constants centralized in `constants.js` (GAME object)
+- Status effects use `STATUS` enum instead of string literals
+- `resolveMove()` delegates to `calculateDamage()` and `rollStatusEffect()` for testability
+- Characters own their `mpRegen` rate instead of hardcoding
 
 ## Game Mechanics
 
