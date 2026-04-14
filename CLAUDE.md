@@ -16,7 +16,7 @@ A turn-based RPG where a federal construction ENGINEER battles a CONTRACTOR usin
 Modular file structure:
 
 ```
-ROADMAP.md               -- Autonomous development roadmap (Phase 1 foundation + stubs)
+ROADMAP.md               -- Autonomous development roadmap (Phase 1 foundation + 2.1 heuristic tuning + 2.2 LLM proposer design; see file for current state)
 plans/                   -- Implementation plans, one per roadmap phase
 scripts/
   simulate.js            -- CLI: runs N sim games, writes balance-report.json or balance-baseline.json
@@ -104,6 +104,8 @@ npm run tune             # Heuristic tuning loop (up to 50 iters / 15 min)
 npm run tune:dry-run     # 2-iteration smoke test — no file writes, no git ops
 npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 ```
+
+**Commit style:** conventional-commits prefixes (`refactor(content):`, `test(constants):`, `docs(roadmap):`, `fix(test):`, `feat(tune):`) plus a `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>` trailer on AI-assisted commits. Keep subjects under ~70 chars; put rationale in the body.
 
 ### Test Structure
 
