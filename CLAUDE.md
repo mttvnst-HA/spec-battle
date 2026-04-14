@@ -97,8 +97,8 @@ The game bible lives at `reference/ktr-vs-engineer-bible.md`. Sources include CM
 npm install
 npm run dev           # Dev server at localhost:5173
 npm run build         # Production build to dist/
-npm test              # Run all 275 tests (vitest)
-npm run sim              # Run 200 games per matchup, write balance-report.json
+npm test              # Run all tests (vitest)
+npm run sim              # Run 1000 games per matchup, write balance-report.json
 npm run sim:update-baseline  # Run same, write balance-baseline.json (commit it!)
 npm run tune             # Heuristic tuning loop (up to 50 iters / 15 min)
 npm run tune:dry-run     # 2-iteration smoke test — no file writes, no git ops
@@ -125,17 +125,17 @@ npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 | `tune-applyProposal` | Bundle write/revert against `content/game.json` + moves files; transactional mid-write rollback |
 | `tune-proposer` | 6-rule round-robin heuristic library; shape + step-size invariants (relaxed in Phase 2.2a) |
 | `tune-gitOps` | Commit-wrapper escaping (shell metacharacters); injectable exec |
-| `tune-loop` | Orchestrator: convergence, budget, kill-switch, improvement gating, bounded retry, write-failed/invalid-output outcomes |
+| `tune-loop` | Orchestrator: convergence, budget, kill-switch, improvement gating, bounded retry, write-failed/invalid-output outcomes, worstDistanceCandidate capture, transport-error surfacing |
 | `tune-claudeTransport` | createCliTransport fake-exec: success, nonzero exit, timeout, input validation |
-| `tune-llmProposer-prompt` | buildPrompt shape: static prefix, content embedding, history with deltas, retry context |
+| `tune-llmProposer-prompt` | buildPrompt shape: static prefix, content embedding, history with deltas, retry context, candidate-distance in history |
 | `tune-llmProposer-parse` | parseBundle ladder (envelope/fences/brace-extract) + schema + step-size violations |
-| `tune-llmProposer-propose` | createLlmProposer glue with fake transport: happy path, parse passthrough, null on transport throw |
+| `tune-llmProposer-propose` | createLlmProposer glue with fake transport: happy path, parse passthrough, null on transport throw, lastError getter behavior |
 
 ## Simulation harness
 
 Headless, seeded simulation of spec-battle. Lives under `src/sim/` and `scripts/`.
 
-- `npm run sim` runs 200 games per matchup at seed=1 and writes `balance-report.json` (gitignored).
+- `npm run sim` runs 1000 games per matchup at seed=1 and writes `balance-report.json` (gitignored). (Phase 2.2c: increased from 200 for better noise floor regression coverage.)
 - `npm run sim:update-baseline` writes to `balance-baseline.json` (committed — it's the regression contract).
 - Matchups: Random-vs-Random (pure rule balance) and Random-vs-`pickAIMove` (shipping AI).
 - Determinism comes from `src/game/rng.js` (xorshift32). When unseeded, it delegates to `Math.random()` so existing `vi.spyOn(Math, "random")` tests keep working.
@@ -163,6 +163,7 @@ Heuristic balance tuner. Lives under `src/tune/` and `scripts/tune.js`.
 - Windows-only: Claude Code 2.1.x shells out to git-bash for some tooling and errors out with `Claude Code on Windows requires git-bash ...` unless `CLAUDE_CODE_GIT_BASH_PATH` points at `bash.exe` (typically `C:\Users\<you>\AppData\Local\Programs\Git\usr\bin\bash.exe` or `C:\Program Files\Git\bin\bash.exe`). The transport sees the non-zero exit and returns `null` → loop exits `"exhausted"`. Set this env var when invoking the LLM tuning path on Windows.
 - Proposer emits `ProposalBundle = { rule, summary, targets: [{target, before, after}, ...] }`. One iteration can move multiple levers coherently.
 - Invalid LLM output triggers one bounded retry with the parse/validation error as context. If the retry also fails, the iteration is skipped (outcome: `"invalid-output"`).
+- On `exhausted` exit, the loop writes a `## Last transport error` section at the end of `tuning-summary.md` carrying the CLI's error message (timeout, nonzero exit, or ENOENT). Distinguishes rate-limit / quota / CLI-missing cases after the fact (Phase 2.2c).
 - Budget defaults for the LLM path: 30 iterations / 45 minutes wall-clock. Override with `--max-iters=N --max-wall-ms=N` as usual.
 - `tune:llm` script is portable — passes `--llm` to `scripts/tune.js`, which is equivalent to setting `TUNE_PROPOSER=llm`. Works under cmd.exe, PowerShell, and Git Bash. Prefer `npm run tune:llm` over `TUNE_PROPOSER=llm npm run tune` for consistency across shells.
 - No real CLI call is made from any unit test — `llmProposer.js` and `claudeTransport.js` are fixture- and fake-exec-tested. Verify wiring with `TUNE_PROPOSER=llm npm run tune:dry-run` (2 iterations, real CLI, no writes).
