@@ -145,4 +145,34 @@ describe("propose (round-robin)", () => {
     const b = propose(dominantEngineerReport, 0);
     expect(a).toEqual(b);
   });
+
+  it("raise-heal-floor rule declines when contractor is dominant", () => {
+    // Build a contractor-dominant report: engineer wins only 20% in both.
+    const contractorDominant = {
+      matchups: [
+        {
+          matchup: "random-vs-random",
+          engineerWinRate: 0.2, contractorWinRate: 0.8, drawRate: 0, avgTurns: 20,
+          moveFrequency: { engineer: {}, contractor: {} },
+        },
+        {
+          matchup: "random-vs-ai",
+          engineerWinRate: 0.2, contractorWinRate: 0.8, drawRate: 0, avgTurns: 20,
+          moveFrequency: { engineer: {}, contractor: {} },
+        },
+      ],
+    };
+    // Force round-robin onto the raise-heal-floor rule (index 5) by picking
+    // iteration 5. Contractor is dominant → raise-heal-floor declines → round-robin
+    // should continue to try other rules. The exact rule that fires isn't the
+    // point; the point is that raise-heal-floor alone does NOT fire for this input.
+    // Assert by calling the rule directly.
+    const ruleRaiseHeal = RULES.find((r) => r.name === "raise-heal-floor");
+    expect(ruleRaiseHeal).toBeTruthy();
+    const cfg = {
+      GAME: { healRange: [28, 45] },
+      moves: { engineer: [], contractor: [] },
+    };
+    expect(ruleRaiseHeal.fn(contractorDominant, cfg)).toBeNull();
+  });
 });

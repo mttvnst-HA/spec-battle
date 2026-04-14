@@ -1,6 +1,6 @@
 // Round-robin heuristic proposer for Phase 2.1.
 // Each rule: pure function of (report, config) → Proposal | null.
-// propose(report, iteration): tries rules[iteration % N], falls through on null.
+// propose(report, iteration, cfg = readConfig()): tries rules[iteration % N], falls through on null. cfg can be injected for tests; defaults to live filesystem config.
 
 import { readConfig } from "./applyProposal.js";
 
@@ -64,6 +64,7 @@ function ruleNerfTopUsage(report, cfg) {
   if (!move) return null;
 
   const [lo, hi] = move.dmg;
+  // Floor: never let damage drop to 0 (lo-1 >= 1 keeps lo >= 2 after the nerf).
   if (hi - 1 >= lo && lo - 1 >= 1) {
     const after = [lo - 1, hi - 1];
     return {
@@ -177,8 +178,7 @@ export const RULES = [
   { name: "raise-heal-floor",       fn: ruleRaiseHealFloor },
 ];
 
-export function propose(report, iteration) {
-  const cfg = readConfig();
+export function propose(report, iteration, cfg = readConfig()) {
   const n = RULES.length;
   for (let offset = 0; offset < n; offset++) {
     const rule = RULES[(iteration + offset) % n];

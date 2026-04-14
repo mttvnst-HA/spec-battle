@@ -120,6 +120,26 @@ describe("runLoop", () => {
     expect(result.reason).toBe("budget-iters");
   });
 
+  it("stops with reason='budget-wall' when wall clock hits first", () => {
+    const fs = makeFakeFs();
+    // Clock jumps forward by 100ms per call; wall limit is 50ms → first in-loop
+    // check trips immediately after the baseline sim's clock reading at iter=1.
+    const clock = makeFakeClock();
+    const git = makeFakeGit();
+    const result = runLoop({
+      runSim: () => report(0.86, 0.72),
+      runTests: () => ({ ok: true }),
+      git, fs, clock,
+      proposer: { propose: () => ({ rule: "x", target: "GAME.mpRegen", before: 4, after: 3, summary: "t" }) },
+      apply: { write: () => {}, revert: () => {} },
+      convergence: makeFakeConvergence(),
+      maxIterations: 50, maxWallMs: 50, abortFile: ".abort",
+      summaryFile: "summary.md", nextBaselineFile: "next.json",
+      dryRun: false, log: () => {},
+    });
+    expect(result.reason).toBe("budget-wall");
+  });
+
   it("stops with reason='converged' when last 3 reports are in band", () => {
     const fs = makeFakeFs();
     const clock = makeFakeClock();
@@ -138,6 +158,8 @@ describe("runLoop", () => {
       dryRun: false, log: () => {},
     });
     expect(result.reason).toBe("converged");
+    expect(git._commits.length).toBeGreaterThan(0);
+    expect(git._commits[0]).toMatch(/^tune\(iter-\d+\):/);
   });
 
   it("reverts the proposal and skips commit when tests fail", () => {
