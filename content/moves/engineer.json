@@ -1,0 +1,50 @@
+[
+  {
+    "name": "REJECT SUBMITTAL",
+    "emoji": "🚫",
+    "desc": "Code E - Disapproved",
+    "dmg": [16, 24],
+    "mp": 0,
+    "effect": null
+  },
+  {
+    "name": "RED-LINE SPEC",
+    "emoji": "🖊️",
+    "desc": "Mark up the submittal in blood red",
+    "dmg": [28, 40],
+    "mp": 15,
+    "effect": null
+  },
+  {
+    "name": "INVOKE SHALL",
+    "emoji": "⚖️",
+    "desc": "SHALL is mandatory, not optional",
+    "dmg": [32, 48],
+    "mp": 20,
+    "effect": "stun"
+  },
+  {
+    "name": "ISSUE NCR",
+    "emoji": "📋",
+    "desc": "Non-Conformance Report - permanent record",
+    "dmg": [18, 28],
+    "mp": 12,
+    "effect": "weaken"
+  },
+  {
+    "name": "CITE UFC",
+    "emoji": "📖",
+    "desc": "Unified Facilities Criteria - divine authority",
+    "dmg": [10, 16],
+    "mp": 10,
+    "effect": "defense"
+  },
+  {
+    "name": "CURE NOTICE",
+    "emoji": "⏰",
+    "desc": "10-day countdown or face termination",
+    "dmg": [38, 55],
+    "mp": 28,
+    "effect": "stun"
+  }
+]

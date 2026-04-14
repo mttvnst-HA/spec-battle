@@ -1,0 +1,59 @@
+{
+  "SUBMIT RFI": [
+    "The specifications appear to conflict between Section 3.2 and Drawing C-401...",
+    "Please clarify the design intent regarding...",
+    "Failure to respond within 10 days will impact the critical path.",
+    "We have submitted 47 RFIs this week. Your response is overdue on 38 of them.",
+    "The answer may be in the documents, but we'd like it in writing from you.",
+    "This RFI is submitted without prejudice to the Contractor's right to claim delay.",
+    "There were 4,000 RFIs on this project. Clearly the design was incomplete.",
+    "Please advise whether the contractor should proceed with Option A or Option B..."
+  ],
+  "CLAIM DSC": [
+    "Pursuant to FAR 52.236-2, we are providing prompt written notice...",
+    "The boring logs did not indicate this condition.",
+    "This rock was not reasonably foreseeable from the contract documents.",
+    "We consider this a Type I Differing Site Condition.",
+    "We stopped work immediately and preserved the evidence. Our photographer was here before the dust settled.",
+    "The Government's mere silence is insufficient to establish the absence of unfavorable conditions.",
+    "We stopped work immediately, photographed everything, and fired off the magic letter."
+  ],
+  "VALUE ENGINEER": [
+    "We've identified significant savings through an alternative approach...",
+    "This VECP maintains performance while reducing cost by 40%.",
+    "Under FAR 52.248-3, the contractor retains 55% of net savings.",
+    "We bid the expensive product. Now here's a cheaper one. You're welcome.",
+    "It meets the MINIMUM requirements. That's what minimum means.",
+    "We identified the cheaper alternative during estimating, bid the expensive item, then submitted the VECP. Standard procedure.",
+    "USACE acceptance rate for VECPs has historically exceeded 60%. We like those odds."
+  ],
+  "SCHEDULE DELAY": [
+    "The updated CPM shows 47 government-caused delays on the critical path.",
+    "Your RFI response consumed the remaining float on Activity 340.",
+    "We cannot determine at this time the full effect on the completion date...",
+    "Month 1: on schedule. Month 3: minor weather delay. Month 6: 47 RFIs on the critical path. Month 9: the schedule narrative reads like a legal brief.",
+    "Who owns the float? We do. Obviously.",
+    "Blame weather, supply chain, the tides, and your RFI response time."
+  ],
+  "OR-EQUAL GAMBIT": [
+    "We believe this product is an approved equal per Section 01 60 00.",
+    "Other engineers have let us substitute this on every other project.",
+    "The base approved this for Building 101 - why not here?",
+    "It meets intent. Close enough.",
+    "Our sub says it meets spec. Their rep confirmed it. Verbally. Probably.",
+    "Nobody installs the specified product anymore. It's obsolete.",
+    "Any vehicle that runs may be acceptable. That makes every vehicle equal to a Cadillac, right?",
+    "Those loopholes and post-award substitution acceptance were what made me money on the contracting side."
+  ],
+  "RESERVE RIGHTS": [
+    "We reserve all rights under the contract.",
+    "This work is performed under protest and with full reservation of rights.",
+    "We consider this direction to be a constructive change.",
+    "Please confirm this direction in writing from the Contracting Officer.",
+    "Only the Contracting Officer can bind the Government. You're the COR.",
+    "Have you been keeping daily logs? Good. They're evidence now.",
+    "This is not within our scope of work as defined by the contract documents.",
+    "Before we begin, let me note that this meeting does not constitute a waiver of any rights under the contract.",
+    "We assure you that we will do everything we can to minimize those costs..."
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "REJECT SUBMITTAL": [
+    "This does not conform to the approved submittal.",
+    "Disapproved. See red-lines attached.",
+    "This is the third resubmittal. Still non-compliant.",
+    "Did you even read the review comments?",
+    "Revise and resubmit. Again.",
+    "The cut sheet you submitted is for a different product.",
+    "Submitting does not equal approved. The stamp says 'Revise and Resubmit.'",
+    "Approval of submittals does not relieve the contractor from complying with all contract requirements.",
+    "Your attention to this matter is appreciated."
+  ],
+  "RED-LINE SPEC": [
+    "See the red-lines attached. All 47 of them.",
+    "I highlighted the non-conforming items. In red. The entire page is red.",
+    "Remove and replace at no additional cost to the Government.",
+    "Per the contract documents, this is unacceptable.",
+    "The spec is clear and unambiguous on this point.",
+    "As noted in our previous correspondence...",
+    "The contractor bid this work. The time for questioning the spec was during bidding.",
+    "The Government is concerned with the end result. If it doesn't meet spec, remove and replace at your expense."
+  ],
+  "INVOKE SHALL": [
+    "The specification says SHALL. Not should. Not may. SHALL.",
+    "SHALL is a mandatory obligation. There is no wiggle room.",
+    "Shall means shall. I don't know how to make that clearer.",
+    "This is contract compliance, not a suggestion box.",
+    "Per Section 07 92 00, paragraph 3.2.1, the contractor SHALL apply sealant in strict accordance with manufacturer's written instructions.",
+    "And yet here we are, contractually bound by it."
+  ],
+  "ISSUE NCR": [
+    "Noted. Non-conformance report filed.",
+    "This NCR will be part of the permanent project record.",
+    "Your QC system has failed to prevent this deficiency.",
+    "The NCR is tagged and photographed. Enjoy your CPARS.",
+    "We look forward to the Contractor's corrective action plan.",
+    "This is the fourth NCR this month. See the trend?",
+    "Items get physically marked on-site for maximum visibility. Your crew will see this every morning.",
+    "We will memorialize this discussion in the meeting minutes."
+  ],
+  "CITE UFC": [
+    "Per UFC 1-200-01, this is mandatory for all DoD construction.",
+    "The UFC is not optional. It is not a guideline. It is the standard.",
+    "We're not building a piano. We're building a military facility to UFC standards.",
+    "The Government did not specify the minimum. The Government specified the standard.",
+    "Approval does not relieve the contractor from complying with all contract requirements.",
+    "UFC and UFGS are mandatory for all DoD construction. This is the engineer's divine authority."
+  ],
+  "CURE NOTICE": [
+    "You have 10 days to cure this deficiency or face default termination.",
+    "Show cause why this contract should not be terminated for default.",
+    "Failure to present an explanation may be taken as admission that none exists.",
+    "This matter is referred to the Contracting Officer for final decision.",
+    "Please be advised...",
+    "This is the engineer calling in an airstrike."
+  ]
+}

@@ -1,39 +1,9 @@
-import { C, STATUS, clamp, pick } from "../constants.js";
+import { C, STATUS, clamp } from "../constants.js";
 import { ENGINEER, CONTRACTOR } from "../data/characters.js";
 import { resolveMove, pickAIMove } from "./logic.js";
 
-const INTRO_SEQUENCES = [
-  [
-    { entry: { text: "A wild CONTRACTOR appeared on the jobsite!", color: C.yellow }, delay: 0 },
-    { entry: { text: '  "We\'re here in a spirit of partnering and collaboration."', color: C.white }, delay: 1200 },
-    { entry: { text: "CONTRACTOR slides a submittal package across the table...", color: C.orange }, delay: 2000 },
-    { entry: { text: "The QC stamp is from a company that no longer exists.", color: C.orange }, delay: 1800 },
-    { entry: { text: "Choose your response, ENGINEER.", color: C.bright }, delay: 1500 },
-  ],
-  [
-    { entry: { text: "Both parties attend the preconstruction partnering session.", color: C.yellow }, delay: 0 },
-    { entry: { text: "Everyone pledges to communicate openly and resolve issues at the lowest level.", color: C.white }, delay: 1800 },
-    { entry: { text: "They sign a partnering charter.", color: C.white }, delay: 1400 },
-    { entry: { text: "By the second progress meeting, every email is CC'd to supervisors three levels up.", color: C.orange }, delay: 2000 },
-    { entry: { text: "The partnering charter yellows on the trailer wall. The battle begins.", color: C.bright }, delay: 1800 },
-  ],
-  [
-    { entry: { text: "CONTRACTOR has installed material before the submittal was approved.", color: C.yellow }, delay: 0 },
-    { entry: { text: "The Government arrives on-site. The stamp says 'Revise and Resubmit.'", color: C.orange }, delay: 1800 },
-    { entry: { text: '  "The lead time was 12 weeks. We had no choice."', color: C.white }, delay: 1600 },
-    { entry: { text: '  "That\'s a you problem. Remove and replace."', color: C.cyan }, delay: 1400 },
-    { entry: { text: "It's on.", color: C.bright }, delay: 1200 },
-  ],
-  [
-    { entry: { text: "CONTRACTOR declares substantial completion.", color: C.yellow }, delay: 0 },
-    { entry: { text: "The Government arrives with eight inspectors, flashlights, and moisture meters.", color: C.orange }, delay: 1800 },
-    { entry: { text: "And decades of accumulated grievances.", color: C.orange }, delay: 1400 },
-    { entry: { text: "The resulting punch list will run to 47 pages. Retainage stays frozen.", color: C.red }, delay: 1800 },
-    { entry: { text: "The final battle begins.", color: C.bright }, delay: 1500 },
-  ],
-];
-
-export const pickIntroSequence = () => pick(INTRO_SEQUENCES);
+// Re-export pickIntroSequence from content loader
+export { pickIntroSequence } from "../data/content-loader.js";
 
 export const initState = () => ({
   engHp: ENGINEER.maxHp, engMp: ENGINEER.maxMp,

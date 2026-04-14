@@ -15,11 +15,19 @@ A turn-based RPG where a federal construction ENGINEER battles a CONTRACTOR usin
 Modular file structure:
 
 ```
+content/                 -- Game content as editable JSON (see content/README.md)
+  quotes/engineer.json   -- Engineer move quotes, keyed by move name
+  quotes/contractor.json -- Contractor move quotes
+  moves/engineer.json    -- Engineer move definitions (stats, effects)
+  moves/contractor.json  -- Contractor move definitions
+  intros.json            -- Randomized intro sequences
+  game-over.json         -- Victory/defeat text pools
 src/
   App.jsx              -- Root component (screen state machine, global CSS keyframes)
   constants.js         -- Colors (C), font (PIXEL_FONT), timing/game config, STATUS enum, utils
   data/
-    characters.js      -- ENGINEER & CONTRACTOR (stats, moves, quotes, mpRegen)
+    content-loader.js  -- Imports JSON content, resolves colors, merges quotes into moves
+    characters.js      -- Re-exports ENGINEER & CONTRACTOR from content loader
     sprites.js         -- Pixel sprite arrays + color map
   game/
     logic.js           -- calculateDamage(), rollStatusEffect(), resolveMove(), pickAIMove()
@@ -67,4 +75,5 @@ The game bible (research on authentic dialogue, tactics, and scenarios) was deve
 npm install
 npm run dev     # Dev server at localhost:5173
 npm run build   # Production build to dist/
+npm test        # Run test suite (vitest)
 ```

@@ -1,0 +1,42 @@
+[
+  {
+    "name": "The Partnering Betrayal",
+    "steps": [
+      { "text": "A wild CONTRACTOR appeared on the jobsite!", "color": "yellow", "delay": 0 },
+      { "text": "\"We're here in a spirit of partnering and collaboration.\"", "color": "white", "delay": 1200 },
+      { "text": "CONTRACTOR slides a submittal package across the table...", "color": "orange", "delay": 2000 },
+      { "text": "The QC stamp is from a company that no longer exists.", "color": "orange", "delay": 1800 },
+      { "text": "Choose your response, ENGINEER.", "color": "bright", "delay": 1500 }
+    ]
+  },
+  {
+    "name": "The Partnering Session",
+    "steps": [
+      { "text": "Both parties attend the preconstruction partnering session.", "color": "yellow", "delay": 0 },
+      { "text": "Everyone pledges to communicate openly and resolve issues at the lowest level.", "color": "white", "delay": 1800 },
+      { "text": "They sign a partnering charter.", "color": "white", "delay": 1400 },
+      { "text": "By the second progress meeting, every email is CC'd to supervisors three levels up.", "color": "orange", "delay": 2000 },
+      { "text": "The partnering charter yellows on the trailer wall. The battle begins.", "color": "bright", "delay": 1800 }
+    ]
+  },
+  {
+    "name": "The Phantom Submittal",
+    "steps": [
+      { "text": "CONTRACTOR has installed material before the submittal was approved.", "color": "yellow", "delay": 0 },
+      { "text": "The Government arrives on-site. The stamp says 'Revise and Resubmit.'", "color": "orange", "delay": 1800 },
+      { "text": "\"The lead time was 12 weeks. We had no choice.\"", "color": "white", "delay": 1600 },
+      { "text": "\"That's a you problem. Remove and replace.\"", "color": "cyan", "delay": 1400 },
+      { "text": "It's on.", "color": "bright", "delay": 1200 }
+    ]
+  },
+  {
+    "name": "The Pre-Final Inspection",
+    "steps": [
+      { "text": "CONTRACTOR declares substantial completion.", "color": "yellow", "delay": 0 },
+      { "text": "The Government arrives with eight inspectors, flashlights, and moisture meters.", "color": "orange", "delay": 1800 },
+      { "text": "And decades of accumulated grievances.", "color": "orange", "delay": 1400 },
+      { "text": "The resulting punch list will run to 47 pages. Retainage stays frozen.", "color": "red", "delay": 1800 },
+      { "text": "The final battle begins.", "color": "bright", "delay": 1500 }
+    ]
+  }
+]
