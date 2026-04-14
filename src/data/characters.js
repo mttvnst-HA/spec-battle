@@ -12,6 +12,9 @@ export const ENGINEER = {
         "Did you even read the review comments?",
         "Revise and resubmit. Again.",
         "The cut sheet you submitted is for a different product.",
+        "Submitting does not equal approved. The stamp says 'Revise and Resubmit.'",
+        "Approval of submittals does not relieve the contractor from complying with all contract requirements.",
+        "Your attention to this matter is appreciated.",
       ],
     },
     {
@@ -23,6 +26,8 @@ export const ENGINEER = {
         "Per the contract documents, this is unacceptable.",
         "The spec is clear and unambiguous on this point.",
         "As noted in our previous correspondence...",
+        "The contractor bid this work. The time for questioning the spec was during bidding.",
+        "The Government is concerned with the end result. If it doesn't meet spec, remove and replace at your expense.",
       ],
     },
     {
@@ -30,9 +35,10 @@ export const ENGINEER = {
       quotes: [
         "The specification says SHALL. Not should. Not may. SHALL.",
         "SHALL is a mandatory obligation. There is no wiggle room.",
-        "The contractor bid this work. The time for questioning the spec was during bidding.",
         "Shall means shall. I don't know how to make that clearer.",
         "This is contract compliance, not a suggestion box.",
+        "Per Section 07 92 00, paragraph 3.2.1, the contractor SHALL apply sealant in strict accordance with manufacturer's written instructions.",
+        "And yet here we are, contractually bound by it.",
       ],
     },
     {
@@ -44,6 +50,8 @@ export const ENGINEER = {
         "The NCR is tagged and photographed. Enjoy your CPARS.",
         "We look forward to the Contractor's corrective action plan.",
         "This is the fourth NCR this month. See the trend?",
+        "Items get physically marked on-site for maximum visibility. Your crew will see this every morning.",
+        "We will memorialize this discussion in the meeting minutes.",
       ],
     },
     {
@@ -54,6 +62,7 @@ export const ENGINEER = {
         "We're not building a piano. We're building a military facility to UFC standards.",
         "The Government did not specify the minimum. The Government specified the standard.",
         "Approval does not relieve the contractor from complying with all contract requirements.",
+        "UFC and UFGS are mandatory for all DoD construction. This is the engineer's divine authority.",
       ],
     },
     {
@@ -64,6 +73,7 @@ export const ENGINEER = {
         "Failure to present an explanation may be taken as admission that none exists.",
         "This matter is referred to the Contracting Officer for final decision.",
         "Please be advised...",
+        "This is the engineer calling in an airstrike.",
       ],
     },
     {
@@ -88,6 +98,8 @@ export const CONTRACTOR = {
         "We have submitted 47 RFIs this week. Your response is overdue on 38 of them.",
         "The answer may be in the documents, but we'd like it in writing from you.",
         "This RFI is submitted without prejudice to the Contractor's right to claim delay.",
+        "There were 4,000 RFIs on this project. Clearly the design was incomplete.",
+        "Please advise whether the contractor should proceed with Option A or Option B...",
       ],
     },
     {
@@ -98,6 +110,8 @@ export const CONTRACTOR = {
         "This rock was not reasonably foreseeable from the contract documents.",
         "We consider this a Type I Differing Site Condition.",
         "We stopped work immediately and preserved the evidence. Our photographer was here before the dust settled.",
+        "The Government's mere silence is insufficient to establish the absence of unfavorable conditions.",
+        "We stopped work immediately, photographed everything, and fired off the magic letter.",
       ],
     },
     {
@@ -108,6 +122,8 @@ export const CONTRACTOR = {
         "Under FAR 52.248-3, the contractor retains 55% of net savings.",
         "We bid the expensive product. Now here's a cheaper one. You're welcome.",
         "It meets the MINIMUM requirements. That's what minimum means.",
+        "We identified the cheaper alternative during estimating, bid the expensive item, then submitted the VECP. Standard procedure.",
+        "USACE acceptance rate for VECPs has historically exceeded 60%. We like those odds.",
       ],
     },
     {
@@ -116,7 +132,7 @@ export const CONTRACTOR = {
         "The updated CPM shows 47 government-caused delays on the critical path.",
         "Your RFI response consumed the remaining float on Activity 340.",
         "We cannot determine at this time the full effect on the completion date...",
-        "Month 1: on schedule. Month 6: the schedule narrative reads like a legal brief.",
+        "Month 1: on schedule. Month 3: minor weather delay. Month 6: 47 RFIs on the critical path. Month 9: the schedule narrative reads like a legal brief.",
         "Who owns the float? We do. Obviously.",
         "Blame weather, supply chain, the tides, and your RFI response time.",
       ],
@@ -130,6 +146,8 @@ export const CONTRACTOR = {
         "It meets intent. Close enough.",
         "Our sub says it meets spec. Their rep confirmed it. Verbally. Probably.",
         "Nobody installs the specified product anymore. It's obsolete.",
+        "Any vehicle that runs may be acceptable. That makes every vehicle equal to a Cadillac, right?",
+        "Those loopholes and post-award substitution acceptance were what made me money on the contracting side.",
       ],
     },
     {
@@ -141,6 +159,9 @@ export const CONTRACTOR = {
         "Please confirm this direction in writing from the Contracting Officer.",
         "Only the Contracting Officer can bind the Government. You're the COR.",
         "Have you been keeping daily logs? Good. They're evidence now.",
+        "This is not within our scope of work as defined by the contract documents.",
+        "Before we begin, let me note that this meeting does not constitute a waiver of any rights under the contract.",
+        "We assure you that we will do everything we can to minimize those costs...",
       ],
     },
     {

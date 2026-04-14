@@ -2,20 +2,25 @@ import { useReducer, useEffect } from "react";
 import { C, PIXEL_FONT, STATUS, TIMINGS, GAME } from "../constants.js";
 import { ENGINEER_PIXELS, CONTRACTOR_PIXELS } from "../data/sprites.js";
 import { ENGINEER, CONTRACTOR } from "../data/characters.js";
-import { reducer, initState, INTRO_SEQUENCE } from "../game/reducer.js";
+import { reducer, initState, pickIntroSequence } from "../game/reducer.js";
 import { PixelSprite } from "./PixelSprite.jsx";
 import { StatBox } from "./StatBox.jsx";
 import { LogBox } from "./LogBox.jsx";
 
 export function BattleScreen({ onEnd }) {
   const [state, dispatch] = useReducer(reducer, null, initState);
+  const introRef = useRef(null);
+
+  // Pick a random intro sequence once on mount
+  if (!introRef.current) introRef.current = pickIntroSequence();
 
   // Intro sequence
   useEffect(() => {
     if (state.turn !== "intro") return;
+    const sequence = introRef.current;
     const timers = [];
     let cumulative = 0;
-    INTRO_SEQUENCE.forEach((step, i) => {
+    sequence.forEach((step) => {
       cumulative += step.delay;
       timers.push(setTimeout(() => dispatch({ type: "INTRO_LOG", entry: step.entry }), cumulative));
     });
