@@ -1,0 +1,10 @@
+{
+  "critRate": 0.12,
+  "critMultiplier": 1.6,
+  "mpRegen": 4,
+  "stunChance": 0.3,
+  "slowChance": 0.4,
+  "weakenedMultiplier": 1.3,
+  "defMultiplier": 0.5,
+  "healRange": [28, 45]
+}
