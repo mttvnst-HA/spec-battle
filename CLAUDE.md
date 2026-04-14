@@ -97,9 +97,11 @@ The game bible lives at `reference/ktr-vs-engineer-bible.md`. Sources include CM
 npm install
 npm run dev           # Dev server at localhost:5173
 npm run build         # Production build to dist/
-npm test              # Run all 236 tests (vitest)
+npm test              # Run all 275 tests (vitest)
 npm run sim              # Run 200 games per matchup, write balance-report.json
 npm run sim:update-baseline  # Run same, write balance-baseline.json (commit it!)
+npm run tune             # Heuristic tuning loop (up to 50 iters / 15 min)
+npm run tune:dry-run     # 2-iteration smoke test — no file writes, no git ops
 npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 ```
 
@@ -117,6 +119,11 @@ npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 | `sim-runGame` | One-game driver: determinism, termination, move-count tracking |
 | `sim-runBatch` | N-game aggregation: BalanceReport shape, win-rate sums, determinism |
 | `balance-regression` | Diffs a fresh run against `balance-baseline.json` per matchup |
+| `tune-convergence` | Pure convergence math: band check, improvement gate, 2pp guard |
+| `tune-applyProposal` | Proposal write/revert against `content/game.json` + moves files |
+| `tune-proposer` | 6-rule round-robin heuristic library; hardcodes baseline numbers |
+| `tune-gitOps` | Commit-wrapper escaping (shell metacharacters); injectable exec |
+| `tune-loop` | Orchestrator: convergence, budget, kill-switch, improvement gating |
 
 ## Simulation harness
 
@@ -128,3 +135,15 @@ Headless, seeded simulation of spec-battle. Lives under `src/sim/` and `scripts/
 - Determinism comes from `src/game/rng.js` (xorshift32). When unseeded, it delegates to `Math.random()` so existing `vi.spyOn(Math, "random")` tests keep working.
 - `aiPolicy` only supports the contractor side (wraps `pickAIMove`); calling it with `"engineer"` throws. Engineer has no shipping AI — use `randomPolicy` or a custom one.
 - Any intentional balance change requires regenerating and committing a new baseline.
+
+## Tuning harness
+
+Heuristic balance tuner. Lives under `src/tune/` and `scripts/tune.js`.
+
+- `npm run tune` runs the loop; `npm run tune:dry-run` is the 2-iter smoke test (no writes/commits).
+- Loop NEVER writes `balance-baseline.json`. On exit it writes `balance-baseline.next.json` (gitignored); human accepts via `npm run sim:update-baseline`.
+- Kill switch: `.tuning-abort` file (gitignored) primary, SIGINT/SIGTERM, budget caps. Takes priority over budget exhaustion.
+- `vitest.config.js` has `fileParallelism: false` — required because `tune-applyProposal` and `tune-proposer` tests mutate real `content/*.json`. Do NOT remove it; parallel workers interleave writes and produce truncated-JSON errors.
+- `writeProposal` uses `JSON.stringify(obj, null, 2)` which expands hand-authored one-line arrays (`[28, 45]`) to multi-line. Every write-then-revert cycle leaves a cosmetic diff even though numeric values are restored.
+- Phase 2.2 blocker: `tune-proposer`/`content-loader`/`constants` tests hardcode baseline numbers. Any `GAME`/move-stat mutation fails `npm test`. See `ROADMAP.md` § Phase 2.2 for the scoped fix options.
+- Proposer's `propose(report, iteration, cfg = readConfig())` accepts an injected config for fully in-memory tests.
