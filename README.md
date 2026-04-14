@@ -2,7 +2,7 @@
 
 A turn-based RPG where a federal construction **Engineer** battles a **Contractor** using specification language, contract clauses, and bureaucratic warfare.
 
-Set in the world of NAVFAC federal construction, the humor comes from real adversarial dynamics — rejected submittals, weaponized RFIs, invoked SHALL clauses, and claims of Differing Site Conditions.
+Set in the world of federal construction, the humor comes from real adversarial dynamics — rejected submittals, weaponized RFIs, invoked SHALL clauses, and claims of Differing Site Conditions.
 
 ## Prerequisites
 
