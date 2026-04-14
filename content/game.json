@@ -6,5 +6,8 @@
   "slowChance": 0.4,
   "weakenedMultiplier": 1.3,
   "defMultiplier": 0.5,
-  "healRange": [28, 45]
+  "healRange": [
+    28,
+    45
+  ]
 }
