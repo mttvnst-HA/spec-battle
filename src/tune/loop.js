@@ -24,8 +24,8 @@ function summarizeHistory(history, accepted) {
 
 export function runLoop({
   runSim, runTests, git, fs, clock, proposer, apply, convergence,
-  maxIterations = 50,
-  maxWallMs = 15 * 60 * 1000,
+  maxIterations = 30,
+  maxWallMs = 45 * 60 * 1000,
   abortFile = ".tuning-abort",
   summaryFile = "tuning-summary.md",
   nextBaselineFile = "balance-baseline.next.json",
