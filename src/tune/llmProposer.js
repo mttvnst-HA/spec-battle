@@ -125,6 +125,11 @@ export function buildPrompt({ currentState, currentReport, history, retryError }
 
 // ---- parseBundle ----
 
+// Grammar regex uses `.+` (greedy) rather than the plan's literal `[^.]+` so that
+// move names containing dots (none in current content, but theoretically possible)
+// are parsed deterministically — first-dot/last-dot split in resolveCurrent handles
+// them, and unknown names fall out via the no-move-found path. Verified by the
+// "handles move name with dots" fixture test.
 const TARGET_RE = /^(GAME\.[a-zA-Z]+|(?:engineer|contractor)\..+\.(?:dmg|mp))$/;
 
 // Step-size validation per target kind.

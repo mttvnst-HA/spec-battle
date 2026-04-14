@@ -50,7 +50,10 @@ export function runLoop({
     return { reason, history, best: current };
   };
 
-  // Runs one propose call with optional retryError; returns ProposeResult.
+  // Runs one propose call with optional retryError. Returns whatever the
+  // proposer returns — expected to be a ProposeResult ({ok:true, bundle} |
+  // {ok:false, error}) or null for non-recoverable transport failure. Callers
+  // handle all three shapes explicitly; no error handling here.
   const callPropose = (iter, opts) => proposer.propose(current, iter - 1, history, opts);
 
   for (let iter = 1; ; iter++) {
