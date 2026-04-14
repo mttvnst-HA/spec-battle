@@ -15,6 +15,11 @@ A turn-based RPG where a federal construction ENGINEER battles a CONTRACTOR usin
 Modular file structure:
 
 ```
+ROADMAP.md               -- Autonomous development roadmap (Phase 1 foundation + stubs)
+plans/                   -- Implementation plans, one per roadmap phase
+scripts/
+  simulate.js            -- CLI: runs N sim games, writes balance-report.json or balance-baseline.json
+balance-baseline.json    -- Committed baseline; regression test diffs against this
 content/                 -- Game content as editable JSON (see content/README.md)
   quotes/engineer.json   -- Engineer move quotes, keyed by move name
   quotes/contractor.json -- Contractor move quotes
@@ -32,6 +37,11 @@ src/
   game/
     logic.js           -- calculateDamage(), rollStatusEffect(), resolveMove(), pickAIMove()
     reducer.js         -- Game reducer (PLAYER_MOVE, PLAYER_STUNNED, ENEMY_MOVE, RESET)
+    rng.js             -- Seedable xorshift32; delegates to Math.random() when unseeded
+  sim/
+    policies.js        -- randomPolicy + aiPolicy (wraps pickAIMove) for simulated play
+    runGame.js         -- Drives one game via reducer with two policies + seed
+    runBatch.js        -- Aggregates N games into a BalanceReport
   components/
     PixelSprite.jsx    -- SVG sprite renderer with shake/flash animations
     StatBox.jsx        -- HP/MP bars + character stat display
@@ -86,7 +96,9 @@ The game bible lives at `reference/ktr-vs-engineer-bible.md`. Sources include CM
 npm install
 npm run dev           # Dev server at localhost:5173
 npm run build         # Production build to dist/
-npm test              # Run all 208 tests (vitest)
+npm test              # Run all 236 tests (vitest)
+npm run sim              # Run 200 games per matchup, write balance-report.json
+npm run sim:update-baseline  # Run same, write balance-baseline.json (commit it!)
 npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 ```
 
@@ -99,3 +111,18 @@ npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 | `logic` | Damage calc, status effects, crits, AI decisions |
 | `reducer` | All action types, turn flow, win detection, MP regen |
 | `constants` | Game balance snapshots, utility functions |
+| `rng` | Seedable xorshift32 determinism + Math.random fallback |
+| `sim-policies` | Random + AI policies: affordability, side-correctness, determinism |
+| `sim-runGame` | One-game driver: determinism, termination, move-count tracking |
+| `sim-runBatch` | N-game aggregation: BalanceReport shape, win-rate sums, determinism |
+| `balance-regression` | Diffs a fresh run against `balance-baseline.json` per matchup |
+
+## Simulation harness
+
+Headless, seeded simulation of spec-battle. Lives under `src/sim/` and `scripts/`.
+
+- `npm run sim` runs 200 games per matchup at seed=1 and writes `balance-report.json` (gitignored).
+- `npm run sim:update-baseline` writes to `balance-baseline.json` (committed — it's the regression contract).
+- Matchups: Random-vs-Random (pure rule balance) and Random-vs-`pickAIMove` (shipping AI).
+- Determinism comes from `src/game/rng.js` (xorshift32). When unseeded, it delegates to `Math.random()` so existing `vi.spyOn(Math, "random")` tests keep working.
+- Any intentional balance change requires regenerating and committing a new baseline.
