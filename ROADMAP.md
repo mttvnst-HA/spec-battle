@@ -222,6 +222,65 @@ None. Claude Code CLI is assumed to be installed and authenticated on the machin
 - If CLI output shape drifts on a `claude` update, does `parseBundle` need a fallback extractor? (Start with code-fence-stripping + first-JSON-block; iterate on evidence.)
 - Should the prompt include prior *accepted* bundles' deltas on `balance-report` to let the LLM learn which levers actually move the sim? (Parked — follow-up iteration once we have run data.)
 
+### Phase 2.2c — Sim noise floor + observability
+
+**Goal:** Close the sim-noise-vs-step-size ceiling revealed by the Phase 2.2b production LLM tune. Increase per-matchup game count to push the measurement floor below the step-size signal; add `worstDistanceCandidate` to history entries so "close miss" and "way off" are distinguishable in post-run analysis; surface transport errors in `tuning-summary.md` so `exhausted` exits are interpretable. Leaves `isImprovement` strict — the strict-inequality gate is correct; the right fix is measurement, not the gate.
+
+**Depends on:** Phase 2.2b shipped (PR #3 merged) + the `--llm` portability fix (PR #4).
+
+#### Observed Phase 2.2b ceiling (2026-04-14 production run, 8 iterations, seed=1)
+
+Eight LLM-proposed bundles, increasingly sophisticated: global `stunChance` nerfs, cross-side rebalances, coordinated multi-lever tweaks of up to 5 targets. Every iteration: `not-improvement`. Worst distance pinned at 36.50pp (random-vs-random engineer winrate 86.5%) throughout. Tune exited `exhausted` at iteration 9 — likely CLI rate limit or session quota; `tuning-summary.md` did not surface the transport error, so the reason is currently indistinguishable from "CLI not installed" or "proposer legitimately returned null". That's an observability gap in its own right.
+
+Root-cause analysis: standard error on RvR engineer winrate at n=200, p=0.865 is ≈ 2.4pp. `isImprovement` requires `worst(candidate) < worst(current)` strictly, with no other matchup regressing >2pp. Step-size bounds (±1 dmg on a 16–24 range ≈ 5%; ±0.02 on a 0.12 rate ≈ 17%) produce signals in the same order of magnitude as the sim noise. The LLM likely moved the sim in the correct direction multiple times — the noise floor swallowed the signal. **Proposer sophistication cannot rescue a downstream measurement problem.** No code change in Phase 2.2c is a proposer-quality change.
+
+#### Acceptance criteria
+
+1. Default per-matchup game count raised from 200 to 1000 in both `scripts/simulate.js` and `scripts/tune.js` callers. Standard error on p=0.865 drops from ~2.4pp to ~1.08pp, below the expected post-tweak signal. `balance-baseline.json` is regenerated via `npm run sim:update-baseline` (human-approved, one commit). `balance-regression.test.js` stays green against the regenerated baseline.
+2. `src/tune/loop.js` history entries carry a new `worstDistanceCandidate` field on `accepted` and `not-improvement` outcomes (sibling to existing `worstDistanceBefore` / `worstDistanceAfter`). `summarizeHistory` renders it as a new column in `tuning-summary.md`. Field is `undefined` on `baseline`, `tests-failed`, `invalid-output`, and `write-failed` entries. Loop tests extended to cover the new field.
+3. `src/tune/llmProposer.js` `buildPrompt` includes `worstDistanceCandidate` for `not-improvement` history entries in the prompt, so the LLM can see how close its prior bundle came to the gate. Fixture test added.
+4. Loop surfaces the last transport error string in the result, and `summarizeHistory` renders it as a final section when `reason === "exhausted"`. Makes rate-limit / quota / binary-missing outcomes distinguishable after the fact.
+5. A fresh `npm run tune:llm` from clean master on a machine with a working CLI produces at least one accepted bundle AND exits cleanly (`converged`, `budget-iters`, or `budget-wall` — not `exhausted`). If the run converges, great; if not, `tuning-summary.md` makes the new ceiling visible (candidate distances present, transport error surfaced if any).
+6. All existing 324+ tests stay green throughout (baseline regeneration step updates `balance-baseline.json` but leaves tests passing).
+
+#### Locked decisions
+
+- **Sim-size default = 1000 games per matchup.** Not jumping to 2000: iteration wall-clock roughly triples (200→1000 games ≈ 3× the fastest path); budget stays at 30 iters / 45 min for now. If 1000 is still noisy after the first run, 2000 is parked.
+- **History field name = `worstDistanceCandidate`.** Present only when `runSim()` actually ran (accepted, not-improvement). Absent otherwise — matches existing `worstDistanceAfter` absence pattern.
+- **`isImprovement` unchanged.** Strict-inequality gate stays. An epsilon-based softer gate ("accept if drop exceeds 1.5pp") is parked — try measurement first.
+- **Step-size bounds unchanged.** ±1 dmg, ±0.02 rate, ±0.05 multiplier, `healRange` caps per Phase 2.1. Widening to ±2 dmg or ±0.05 rate is parked — try noise reduction first.
+- **Budget unchanged.** 30 iters / 45 min. Iterations will be slower; revisit if the first run hits `budget-wall` before `budget-iters`.
+- **Baseline update is human-approved.** Loop never writes `balance-baseline.json`; the sim-size change forces a one-time regeneration via `npm run sim:update-baseline`, committed as a separate step, not folded into an auto-tune run.
+
+#### Components to build / modify
+
+- Modify: `scripts/simulate.js` — default count 200 → 1000 (single constant, may be a CLI flag or a top-of-file const).
+- Modify: `scripts/tune.js` — the `runSim()` helper's hardcoded `const count = 200` → `const count = 1000`.
+- Modify: `src/tune/loop.js` — capture `worstDistance(candidate)` before the isImprovement check; thread it into every `accepted` and `not-improvement` history push as `worstDistanceCandidate`; capture `err.message` from proposer throw paths; surface on `finalize("exhausted")` into the result + summary.
+- Modify: `src/tune/llmProposer.js` `buildPrompt` — add `worstDistanceCandidate` to history-entry JSON serialization (conditional, same pattern as existing delta fields).
+- Modify: `src/__tests__/tune-loop.test.js` — extend the "accepted delta capture" test to also assert `worstDistanceCandidate`; add a new test for `worstDistanceCandidate` on `not-improvement`; add a test covering transport-error capture into the summary.
+- Modify: `src/__tests__/tune-llmProposer-prompt.test.js` — fixture test that a `not-improvement` history entry with `worstDistanceCandidate` appears in the generated prompt.
+- Regenerate: `balance-baseline.json` (human-approved, via `npm run sim:update-baseline`, one commit separate from the code changes above).
+
+#### Dependencies added
+
+None.
+
+#### Out of scope for Phase 2.2c
+
+- Phase 3 (Bayesian optimization).
+- Phase 4 (LLM-as-player).
+- Relaxing `isImprovement` (parked).
+- Widening step-size bounds (parked).
+- Increasing budget to accommodate slower iterations (parked — re-evaluate after first run).
+- Retry logic in the transport layer to survive CLI rate limits (parked — surface the error first, then decide).
+
+#### Open questions (parked)
+
+- If 1000 games still doesn't clear the noise floor, is the next move 2000 games, or an epsilon-based `isImprovement`? (Defer until observed.)
+- The CLI's `exhausted` behavior after ~8 calls — rate limit, quota, session timeout, or transient? AC4 will make this visible in summary output. If it's a per-minute rate limit, a fixed inter-iteration delay may suffice.
+- Does `balance-regression.test.js`'s ±0.5pp tolerance need tightening once the baseline is regenerated at 1000 games? (Tighter sim should reduce drift; tolerance could naturally shrink.)
+
 ## Phase 3 — Bayesian optimization sweep (stub)
 
 - **Goal:** Replace or augment the loop's proposer with a BO layer over the most sensitive `GAME` constants, using the balance-delta as the objective.
