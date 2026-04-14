@@ -86,7 +86,7 @@ Split into two sub-phases. Phase 2.1 ships first; Phase 2.2 is unlocked only if 
 2. `npm run tune:dry-run` runs 2 iterations with no file writes and no git ops — pre-flight safety check.
 3. An automated vitest case proves the kill-switch works: drives the loop with a no-op proposer, writes `.tuning-abort` mid-run, asserts graceful stop + summary written.
 4. All existing tests stay green. Balance-regression test honors `SKIP_BALANCE_REGRESSION=1` so the loop can run without fighting itself.
-5. On a 50-iteration run from clean master, either: engineer win rate lands in **[45%, 55%]** for both matchups for 3 consecutive iterations (converged), or the final `tuning-summary.md` names the specific rule-library ceiling (informs Phase 2.2).
+5. A tuning run from clean master terminates with either: engineer win rate in **[45%, 55%]** for both matchups for 3 consecutive iterations (converged), or `tuning-summary.md` + committed ROADMAP notes naming the specific rule-library ceiling (informs Phase 2.2). The run may be short if the ceiling is hit on the first iteration — what matters is that the ceiling is documented with enough detail to scope 2.2. (Phase 2.1 finding: the test gate was falsified on iter 1, so 50-iter runs aren't necessary to identify it.)
 
 #### Locked decisions
 
