@@ -29,6 +29,57 @@ npm run dev
 
 The first command downloads the project's dependencies. The second starts a local development server. Open the URL shown in the terminal (typically [http://localhost:5173](http://localhost:5173)) in your web browser.
 
+## Contributing Content
+
+All game content lives in the `content/` directory as simple JSON files. You can add quotes, intro sequences, moves, and game over text without touching any JavaScript. See [`content/README.md`](content/README.md) for full schemas.
+
+### Add a battle quote
+
+Edit `content/quotes/engineer.json` or `content/quotes/contractor.json`. Find the move name and add a string to its array:
+
+```json
+{
+  "REJECT SUBMITTAL": [
+    "...existing quotes...",
+    "Your new quote goes here."
+  ]
+}
+```
+
+### Add an intro sequence
+
+Edit `content/intros.json`. Add a new object to the array:
+
+```json
+{
+  "name": "Your Intro Name",
+  "steps": [
+    { "text": "First line appears immediately.", "color": "yellow", "delay": 0 },
+    { "text": "Second line after 1.5 seconds.", "color": "white", "delay": 1500 },
+    { "text": "Final line.", "color": "bright", "delay": 1200 }
+  ]
+}
+```
+
+### Add game over text
+
+Edit `content/game-over.json`. Add a string to the `engineer` or `contractor` array.
+
+### Add a new move
+
+1. Add the move definition to `content/moves/engineer.json` or `content/moves/contractor.json`
+2. Add quotes for it in the matching `content/quotes/` file
+
+### Validate your changes
+
+Run the test suite to make sure your content is well-formed:
+
+```bash
+npm test
+```
+
+The content integrity tests check for required fields, valid effect types, minimum quote counts, and duplicate detection.
+
 ## Build for Production
 
 To create an optimized build for deployment:
