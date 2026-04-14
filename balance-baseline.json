@@ -1,0 +1,58 @@
+{
+  "matchups": [
+    {
+      "matchup": "random-vs-random",
+      "startSeed": 1,
+      "count": 200,
+      "engineerWinRate": 0.865,
+      "contractorWinRate": 0.135,
+      "drawRate": 0,
+      "avgTurns": 12.46,
+      "moveFrequency": {
+        "engineer": {
+          "REJECT SUBMITTAL": 0.3213,
+          "CITE UFC": 0.1464,
+          "INVOKE SHALL": 0.1299,
+          "RED-LINE SPEC": 0.1486,
+          "CURE NOTICE": 0.1164,
+          "ISSUE NCR": 0.1374
+        },
+        "contractor": {
+          "SCHEDULE DELAY": 0.1616,
+          "SUBMIT RFI": 0.1958,
+          "RESERVE RIGHTS": 0.1764,
+          "CLAIM DSC": 0.1542,
+          "VALUE ENGINEER": 0.1477,
+          "OR-EQUAL GAMBIT": 0.1644
+        }
+      }
+    },
+    {
+      "matchup": "random-vs-ai",
+      "startSeed": 1,
+      "count": 200,
+      "engineerWinRate": 0.715,
+      "contractorWinRate": 0.285,
+      "drawRate": 0,
+      "avgTurns": 18.68,
+      "moveFrequency": {
+        "engineer": {
+          "REJECT SUBMITTAL": 0.3961,
+          "CITE UFC": 0.1568,
+          "INVOKE SHALL": 0.0928,
+          "RED-LINE SPEC": 0.1238,
+          "CURE NOTICE": 0.0861,
+          "ISSUE NCR": 0.1444
+        },
+        "contractor": {
+          "SCHEDULE DELAY": 0.0968,
+          "SUBMIT RFI": 0.2124,
+          "RESERVE RIGHTS": 0.2555,
+          "VALUE ENGINEER": 0.2655,
+          "OR-EQUAL GAMBIT": 0.0863,
+          "CLAIM DSC": 0.0834
+        }
+      }
+    }
+  ]
+}
