@@ -14,7 +14,14 @@ const isUpdateBaseline = args.includes("--update-baseline");
 
 function flag(name, fallback) {
   const arg = args.find((a) => a.startsWith(`--${name}=`));
-  return arg ? Number(arg.split("=")[1]) : fallback;
+  if (!arg) return fallback;
+  const raw = arg.split("=")[1];
+  const n = Number(raw);
+  if (!Number.isFinite(n)) {
+    console.error(`Invalid --${name}=${raw} (must be a finite number)`);
+    process.exit(1);
+  }
+  return n;
 }
 
 const count = flag("count", 200);
