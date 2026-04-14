@@ -159,6 +159,7 @@ Heuristic balance tuner. Lives under `src/tune/` and `scripts/tune.js`.
 - `TUNE_PROPOSER=llm npm run tune` (or `npm run tune:llm`) selects the Claude Code CLI subprocess proposer. Default path (no env var) uses the Phase 2.1 heuristic proposer unchanged.
 - Transport: `src/tune/claudeTransport.js` spawns `claude -p '<prompt>' --output-format json --model <model>` via `child_process.execFileSync` (no shell, arg-array form). Uses your existing `claude` CLI auth.
 - Default model `claude-sonnet-4-6`; override with `TUNE_MODEL=claude-opus-4-6`. Default timeout 120s per call; override with `TUNE_TIMEOUT_MS=180000`.
+- `claude` binary resolved via PATH by default; override with `TUNE_CLAUDE_BIN=/absolute/path/to/claude`. Needed when Claude Code is bundled with the desktop app but not on PATH — on Windows the binary lives at `%APPDATA%\Claude\claude-code\<version>\claude.exe`, which is not a PATH entry by default. Set this env var to that absolute path to point the tuning harness at it.
 - Proposer emits `ProposalBundle = { rule, summary, targets: [{target, before, after}, ...] }`. One iteration can move multiple levers coherently.
 - Invalid LLM output triggers one bounded retry with the parse/validation error as context. If the retry also fails, the iteration is skipped (outcome: `"invalid-output"`).
 - Budget defaults for the LLM path: 30 iterations / 45 minutes wall-clock. Override with `--max-iters=N --max-wall-ms=N` as usual.
