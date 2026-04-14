@@ -128,6 +128,20 @@ None.
 - **Depends on:** Phase 2.1 shipping and producing a `tuning-summary.md` that shows the heuristic ceiling.
 - **Parked questions:** API budget per run; prompt shape (full `balance-report.json` + move JSON, or targeted slices?); how to keep proposals deterministic enough for a repeatable vitest smoke test.
 
+#### Observed Phase 2.1 ceiling (2026-04-13 smoke run, 5 iterations)
+
+The 5-iter smoke accepted **zero** proposals; worst-matchup distance stayed at 36.5pp the whole time. Three concrete gates blocked progress:
+
+- **Test gate rejects value mutations wholesale.** Tests under `src/__tests__/tune-proposer.test.js`, `content-loader.test.js`, and `constants.test.js` hard-code baseline numbers (`dmg: [16,24]`, `GAME.mpRegen: 4`, etc.). Any stat mutation flips one or more of them, so `npm test` returns non-zero and the loop reverts. 4 of 5 iterations hit this path.
+- **Improvement gate too strict for a single +1 tweak.** Iter 2 (CLAIM DSC dmg +1) passed tests but did not move the worst-matchup distance enough to satisfy `isImprovement`. Single-step nudges to mid-tier moves just don't shift a 400-game sim by a measurable margin.
+- **JSON reformat churn.** `writeProposal` → `writeJson` uses `JSON.stringify(obj, null, 2)`, which expands hand-authored one-line arrays (`[28, 45]`) into multi-line form on every write. Even pure revert cycles leave cosmetic diffs — the numeric state restores correctly, but the file diff is noisy.
+
+Concrete implications for 2.2 scope:
+
+- An LLM proposer doesn't fix gate 1 on its own — it would need authority to update value-sensitive tests alongside the mutation (or the tests need to stop asserting specific numbers).
+- The improvement gate probably wants a slackened first-iteration threshold, or the proposer should emit *bundles* of tweaks rather than single steps.
+- Either normalize the source JSON to `JSON.stringify(obj, null, 2)` format (one-time churn, then stable) or give `applyProposal` a formatting-preserving writer.
+
 ## Phase 3 — Bayesian optimization sweep (stub)
 
 - **Goal:** Replace or augment the loop's proposer with a BO layer over the most sensitive `GAME` constants, using the balance-delta as the objective.
