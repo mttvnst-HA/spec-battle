@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "sim": "node scripts/simulate.js",
-    "sim:update-baseline": "node scripts/simulate.js --update-baseline"
+    "sim:update-baseline": "node scripts/simulate.js --update-baseline",
+    "tune": "node scripts/tune.js",
+    "tune:dry-run": "node scripts/tune.js --dry-run"
   },
   "engines": {
     "node": ">=22"
