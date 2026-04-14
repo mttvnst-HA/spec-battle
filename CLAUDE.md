@@ -5,6 +5,7 @@ A turn-based RPG where a federal construction ENGINEER battles a CONTRACTOR usin
 ## Tech Stack
 
 - **Framework:** React 18 + Vite
+- **Runtime:** Node ≥22. Plain-node JSON imports require `with { type: "json" }` attributes (Vite/Vitest handle invisibly).
 - **Styling:** All inline styles (no CSS framework)
 - **Font:** Press Start 2P (pixel font, loaded via Google Fonts in index.html)
 - **State:** useReducer for game state (pure reducer, no stale closures)
@@ -125,4 +126,5 @@ Headless, seeded simulation of spec-battle. Lives under `src/sim/` and `scripts/
 - `npm run sim:update-baseline` writes to `balance-baseline.json` (committed — it's the regression contract).
 - Matchups: Random-vs-Random (pure rule balance) and Random-vs-`pickAIMove` (shipping AI).
 - Determinism comes from `src/game/rng.js` (xorshift32). When unseeded, it delegates to `Math.random()` so existing `vi.spyOn(Math, "random")` tests keep working.
+- `aiPolicy` only supports the contractor side (wraps `pickAIMove`); calling it with `"engineer"` throws. Engineer has no shipping AI — use `randomPolicy` or a custom one.
 - Any intentional balance change requires regenerating and committing a new baseline.
