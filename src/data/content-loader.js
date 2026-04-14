@@ -1,12 +1,12 @@
 import { C, GAME, pick } from "../constants.js";
 
 // Import JSON content
-import engineerMoves from "../../content/moves/engineer.json";
-import contractorMoves from "../../content/moves/contractor.json";
-import engineerQuotes from "../../content/quotes/engineer.json";
-import contractorQuotes from "../../content/quotes/contractor.json";
-import introsData from "../../content/intros.json";
-import gameOverData from "../../content/game-over.json";
+import engineerMoves from "../../content/moves/engineer.json" with { type: "json" };
+import contractorMoves from "../../content/moves/contractor.json" with { type: "json" };
+import engineerQuotes from "../../content/quotes/engineer.json" with { type: "json" };
+import contractorQuotes from "../../content/quotes/contractor.json" with { type: "json" };
+import introsData from "../../content/intros.json" with { type: "json" };
+import gameOverData from "../../content/game-over.json" with { type: "json" };
 
 // Map color name strings from JSON to C palette values
 const COLOR_MAP = {

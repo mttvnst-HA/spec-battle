@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "sim": "node scripts/simulate.js",
+    "sim:update-baseline": "node scripts/simulate.js --update-baseline"
   },
   "dependencies": {
     "react": "^18.3.1",
