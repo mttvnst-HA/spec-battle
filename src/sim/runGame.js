@@ -4,6 +4,20 @@ import { STATUS } from "../constants.js";
 
 const DEFAULT_MAX_TURNS = 500;
 
+/**
+ * Run one game to completion with the given seed and policies.
+ *
+ * @param {object} opts
+ * @param {number} opts.seed - RNG seed. Same seed + same policies = same game.
+ * @param {(state, side) => move} opts.engPolicy - Engineer move selector.
+ * @param {(state, side) => move} opts.conPolicy - Contractor move selector.
+ *   Both policies MUST return a legal (affordable) move; the sim does not validate.
+ * @param {number} [opts.maxTurns=500] - Hard cap on reducer dispatches. Reaching
+ *   the cap returns winner='draw'.
+ * @returns {{ winner: "engineer" | "contractor" | "draw", turns: number, moveCount: object }}
+ *   `turns` counts reducer dispatches — each is one reducer transition, including
+ *   stun-skip dispatches. A full player+enemy round is typically 2 turns.
+ */
 export function runGame({ seed: seedValue, engPolicy, conPolicy, maxTurns = DEFAULT_MAX_TURNS }) {
   seed(seedValue);
   // Skip the cosmetic intro phase — sim doesn't need log entries
@@ -29,8 +43,7 @@ export function runGame({ seed: seedValue, engPolicy, conPolicy, maxTurns = DEFA
         state = reducer(state, { type: "ENEMY_MOVE", move });
       }
     } else {
-      // Defensive: any unexpected turn state ends the loop
-      break;
+      throw new Error(`runGame: unexpected turn state '${state.turn}'`);
     }
     turns++;
   }
