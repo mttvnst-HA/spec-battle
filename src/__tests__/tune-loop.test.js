@@ -55,6 +55,11 @@ function makeFakeConvergence() {
   };
 }
 
+// Helper: wrap a plain proposal object in the new {ok:true, bundle} shape.
+function bundle(rule, target, before, after, summary) {
+  return { ok: true, bundle: { rule, summary, targets: [{ target, before, after }] } };
+}
+
 describe("runLoop", () => {
   it("stops with reason='exhausted' when proposer returns null immediately", () => {
     const fs = makeFakeFs();
@@ -110,7 +115,7 @@ describe("runLoop", () => {
       runSim: () => sims[Math.min(i++, sims.length - 1)],
       runTests: () => ({ ok: true }),
       git, fs, clock,
-      proposer: { propose: () => ({ rule: "x", target: "GAME.mpRegen", before: 4, after: 3, summary: "test" }) },
+      proposer: { propose: () => bundle("x", "GAME.mpRegen", 4, 3, "test") },
       apply: { write: () => {}, revert: () => {} },
       convergence: makeFakeConvergence(),
       maxIterations: 2, maxWallMs: 1e9, abortFile: ".abort",
@@ -130,7 +135,7 @@ describe("runLoop", () => {
       runSim: () => report(0.86, 0.72),
       runTests: () => ({ ok: true }),
       git, fs, clock,
-      proposer: { propose: () => ({ rule: "x", target: "GAME.mpRegen", before: 4, after: 3, summary: "t" }) },
+      proposer: { propose: () => bundle("x", "GAME.mpRegen", 4, 3, "t") },
       apply: { write: () => {}, revert: () => {} },
       convergence: makeFakeConvergence(),
       maxIterations: 50, maxWallMs: 50, abortFile: ".abort",
@@ -150,7 +155,7 @@ describe("runLoop", () => {
       runSim: () => sims[i++],
       runTests: () => ({ ok: true }),
       git, fs, clock,
-      proposer: { propose: () => ({ rule: "x", target: "GAME.mpRegen", before: 4, after: 3, summary: "test" }) },
+      proposer: { propose: () => bundle("x", "GAME.mpRegen", 4, 3, "test") },
       apply: { write: () => {}, revert: () => {} },
       convergence: makeFakeConvergence(),
       maxIterations: 50, maxWallMs: 1e9, abortFile: ".abort",
@@ -174,7 +179,9 @@ describe("runLoop", () => {
       runSim: () => { simCalls++; return sims[0]; },
       runTests: () => ({ ok: false, output: "test X failed" }),
       git, fs, clock,
-      proposer: { propose: (_, i) => i === 0 ? ({ rule: "x", target: "GAME.mpRegen", before: 4, after: 3, summary: "t" }) : null },
+      proposer: { propose: (_, i) => i === 0
+        ? bundle("x", "GAME.mpRegen", 4, 3, "t")
+        : null },
       apply: { write, revert },
       convergence: makeFakeConvergence(),
       maxIterations: 2, maxWallMs: 1e9, abortFile: ".abort",
@@ -198,7 +205,7 @@ describe("runLoop", () => {
       runSim: () => report(0.86, 0.72),
       runTests: () => ({ ok: true }),
       git, fs, clock,
-      proposer: { propose: () => ({ rule: "x", target: "GAME.mpRegen", before: 4, after: 3, summary: "t" }) },
+      proposer: { propose: () => bundle("x", "GAME.mpRegen", 4, 3, "t") },
       apply: { write, revert },
       convergence: makeFakeConvergence(),
       maxIterations: 50, maxWallMs: 1e9, abortFile: ".abort",
@@ -228,7 +235,7 @@ describe("runLoop", () => {
       },
       runTests: () => ({ ok: true }),
       git, fs, clock,
-      proposer: { propose: () => ({ rule: "noop", target: "GAME.mpRegen", before: 4, after: 4, summary: "noop" }) },
+      proposer: { propose: () => bundle("noop", "GAME.mpRegen", 4, 4, "noop") },
       apply: { write: () => {}, revert: () => {} },
       convergence: makeFakeConvergence(),
       maxIterations: 50, maxWallMs: 1e9, abortFile: ".abort",
@@ -255,7 +262,7 @@ describe("runLoop", () => {
       },
       runTests: () => ({ ok: true }),
       git, fs, clock,
-      proposer: { propose: () => ({ rule: "x", target: "GAME.mpRegen", before: 4, after: 4, summary: "noop" }) },
+      proposer: { propose: () => bundle("x", "GAME.mpRegen", 4, 4, "noop") },
       apply: { write: () => {}, revert: () => {} },
       convergence: makeFakeConvergence(),
       maxIterations: 1, maxWallMs: 1e9, abortFile: ".abort",
@@ -263,5 +270,120 @@ describe("runLoop", () => {
       dryRun: false, log: () => {},
     });
     expect(result.reason).toBe("aborted");
+  });
+
+  describe("invalid-output retry", () => {
+    const baseReport = { matchups: [
+      { matchup: "a", engineerWinRate: 0.5, avgTurns: 10, moveFrequency: { engineer: {}, contractor: {} } },
+      { matchup: "b", engineerWinRate: 0.5, avgTurns: 10, moveFrequency: { engineer: {}, contractor: {} } },
+    ] };
+
+    it("retries once when proposer returns {ok:false}, then skips if retry also fails", () => {
+      const calls = [];
+      const proposer = { propose: (r, i, h, opts) => {
+        calls.push({ iter: i, opts });
+        return { ok: false, error: "bad output" };
+      }};
+      const result = runLoop({
+        runSim: () => baseReport,
+        runTests: () => ({ ok: true }),
+        git: { commitAll: () => {} },
+        fs: { existsSync: () => false, writeFileSync: () => {}, unlinkSync: () => {} },
+        clock: { now: () => 0 },
+        proposer,
+        apply: { write: () => {}, revert: () => {} },
+        convergence: { isConverged: () => false, isImprovement: () => false },
+        maxIterations: 2,
+      });
+      // iter 1: 2 calls (original + retry). iter 2: 2 calls. Total 4.
+      expect(calls).toHaveLength(4);
+      expect(calls[0].opts).toEqual({});
+      expect(calls[1].opts).toEqual({ retryError: "bad output" });
+      // Both iterations record "invalid-output".
+      const invalids = result.history.filter((h) => h.outcome === "invalid-output");
+      expect(invalids).toHaveLength(2);
+      expect(result.reason).toBe("budget-iters");
+    });
+
+    it("retry success path: second call returns ok, loop applies bundle", () => {
+      let callCount = 0;
+      const proposer = { propose: () => {
+        callCount++;
+        if (callCount === 1) return { ok: false, error: "first fail" };
+        return { ok: true, bundle: { rule: "r", summary: "s",
+          targets: [{ target: "GAME.critRate", before: 0.12, after: 0.14 }] } };
+      }};
+      const writeCalls = [];
+      const candidate = { matchups: baseReport.matchups.map((m) => ({ ...m, engineerWinRate: 0.49 })) };
+      const result = runLoop({
+        runSim: (() => { let n = 0; return () => (n++ === 0 ? baseReport : candidate); })(),
+        runTests: () => ({ ok: true }),
+        git: { commitAll: () => {} },
+        fs: { existsSync: () => false, writeFileSync: () => {}, unlinkSync: () => {} },
+        clock: { now: () => 0 },
+        proposer,
+        apply: { write: (b) => writeCalls.push(b), revert: () => {} },
+        convergence: { isConverged: () => false, isImprovement: () => true },
+        maxIterations: 1,
+      });
+      expect(callCount).toBe(2);
+      expect(writeCalls).toHaveLength(1);
+      expect(result.history.find((h) => h.outcome === "accepted")).toBeTruthy();
+    });
+  });
+
+  describe("write-failed outcome", () => {
+    it("records write-failed when apply.write throws, continues to next iteration", () => {
+      const baseReport = { matchups: [
+        { matchup: "a", engineerWinRate: 0.6, avgTurns: 10, moveFrequency: { engineer: {}, contractor: {} } },
+        { matchup: "b", engineerWinRate: 0.6, avgTurns: 10, moveFrequency: { engineer: {}, contractor: {} } },
+      ] };
+      const bndl = { rule: "r", summary: "s",
+        targets: [{ target: "engineer.NONEXISTENT.dmg", before: [1, 2], after: [2, 3] }] };
+      const result = runLoop({
+        runSim: () => baseReport,
+        runTests: () => ({ ok: true }),
+        git: { commitAll: () => {} },
+        fs: { existsSync: () => false, writeFileSync: () => {}, unlinkSync: () => {} },
+        clock: { now: () => 0 },
+        proposer: { propose: () => ({ ok: true, bundle: bndl }) },
+        apply: { write: () => { throw new Error("no move named"); }, revert: () => {} },
+        convergence: { isConverged: () => false, isImprovement: () => false },
+        maxIterations: 1,
+      });
+      const wf = result.history.find((h) => h.outcome === "write-failed");
+      expect(wf).toBeTruthy();
+      expect(wf.bundle).toEqual(bndl);
+    });
+  });
+
+  describe("accepted history captures worstDistanceBefore/After deltas", () => {
+    it("records both distance numbers for accepted entries", () => {
+      const base = { matchups: [
+        { matchup: "a", engineerWinRate: 0.70, avgTurns: 12, moveFrequency: { engineer: {}, contractor: {} } },
+        { matchup: "b", engineerWinRate: 0.70, avgTurns: 12, moveFrequency: { engineer: {}, contractor: {} } },
+      ] };
+      const after = { matchups: [
+        { matchup: "a", engineerWinRate: 0.60, avgTurns: 12, moveFrequency: { engineer: {}, contractor: {} } },
+        { matchup: "b", engineerWinRate: 0.60, avgTurns: 12, moveFrequency: { engineer: {}, contractor: {} } },
+      ] };
+      let n = 0;
+      const result = runLoop({
+        runSim: () => (n++ === 0 ? base : after),
+        runTests: () => ({ ok: true }),
+        git: { commitAll: () => {} },
+        fs: { existsSync: () => false, writeFileSync: () => {}, unlinkSync: () => {} },
+        clock: { now: () => 0 },
+        proposer: { propose: () => ({ ok: true,
+          bundle: { rule: "r", summary: "s",
+            targets: [{ target: "GAME.critRate", before: 0.12, after: 0.14 }] } }) },
+        apply: { write: () => {}, revert: () => {} },
+        convergence: { isConverged: () => false, isImprovement: () => true },
+        maxIterations: 1,
+      });
+      const accepted = result.history.find((h) => h.outcome === "accepted");
+      expect(accepted.worstDistanceBefore).toBeCloseTo(0.20, 6);
+      expect(accepted.worstDistanceAfter).toBeCloseTo(0.10, 6);
+    });
   });
 });

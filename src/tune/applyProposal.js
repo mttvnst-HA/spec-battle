@@ -78,10 +78,33 @@ function applyValue(proposal, value) {
   writeJson(p, moves);
 }
 
-export function writeProposal(proposal) {
-  applyValue(proposal, proposal.after);
+export function writeBundle(bundle) {
+  const written = [];
+  try {
+    for (const t of bundle.targets) {
+      applyValue({ target: t.target, after: t.after }, t.after);
+      written.push(t);
+    }
+  } catch (err) {
+    // Transactional: revert anything written before the failure, in reverse order.
+    for (let i = written.length - 1; i >= 0; i--) {
+      const t = written[i];
+      try {
+        applyValue({ target: t.target, before: t.before }, t.before);
+      } catch {
+        // Revert-during-failure should not mask the original error. Log to stderr for visibility.
+        // eslint-disable-next-line no-console
+        console.error(`writeBundle: failed to revert ${t.target} during rollback`);
+      }
+    }
+    throw err;
+  }
 }
 
-export function revertProposal(proposal) {
-  applyValue(proposal, proposal.before);
+export function revertBundle(bundle) {
+  // Apply reverts in reverse order so later writes are undone before earlier ones.
+  for (let i = bundle.targets.length - 1; i >= 0; i--) {
+    const t = bundle.targets[i];
+    applyValue({ target: t.target, before: t.before }, t.before);
+  }
 }

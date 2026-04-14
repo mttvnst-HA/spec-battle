@@ -122,10 +122,14 @@ npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 | `sim-runBatch` | N-game aggregation: BalanceReport shape, win-rate sums, determinism |
 | `balance-regression` | Diffs a fresh run against `balance-baseline.json` per matchup |
 | `tune-convergence` | Pure convergence math: band check, improvement gate, 2pp guard |
-| `tune-applyProposal` | Proposal write/revert against `content/game.json` + moves files |
+| `tune-applyProposal` | Bundle write/revert against `content/game.json` + moves files; transactional mid-write rollback |
 | `tune-proposer` | 6-rule round-robin heuristic library; shape + step-size invariants (relaxed in Phase 2.2a) |
 | `tune-gitOps` | Commit-wrapper escaping (shell metacharacters); injectable exec |
-| `tune-loop` | Orchestrator: convergence, budget, kill-switch, improvement gating |
+| `tune-loop` | Orchestrator: convergence, budget, kill-switch, improvement gating, bounded retry, write-failed/invalid-output outcomes |
+| `tune-claudeTransport` | createCliTransport fake-exec: success, nonzero exit, timeout, input validation |
+| `tune-llmProposer-prompt` | buildPrompt shape: static prefix, content embedding, history with deltas, retry context |
+| `tune-llmProposer-parse` | parseBundle ladder (envelope/fences/brace-extract) + schema + step-size violations |
+| `tune-llmProposer-propose` | createLlmProposer glue with fake transport: happy path, parse passthrough, null on transport throw |
 
 ## Simulation harness
 
@@ -149,3 +153,16 @@ Heuristic balance tuner. Lives under `src/tune/` and `scripts/tune.js`.
 - `writeProposal` uses `JSON.stringify(obj, null, 2)`. After the Phase 2.2a normalization pass (commit `23e22d1`), all `content/*.json` files are stored in that exact format, so write-then-revert produces byte-identical output — no cosmetic diff. If you hand-edit a content JSON file with a different formatter, re-run the Task 1 normalization before committing.
 - Phase 2.2a (commits `fee149c` + `7fd24ed`) relaxed value-hardcoded assertions in `constants.test.js` (Game Balance Constants block, structural/range checks) and `tune-proposer.test.js` (propose round-robin block, shape + step-size invariants). `content-loader.test.js` was already structural. Drift regression coverage lives in `balance-regression.test.js` against `balance-baseline.json`.
 - Proposer's `propose(report, iteration, cfg = readConfig())` accepts an injected config for fully in-memory tests.
+
+### LLM proposer (Phase 2.2b)
+
+- `TUNE_PROPOSER=llm npm run tune` (or `npm run tune:llm`) selects the Claude Code CLI subprocess proposer. Default path (no env var) uses the Phase 2.1 heuristic proposer unchanged.
+- Transport: `src/tune/claudeTransport.js` spawns `claude -p '<prompt>' --output-format json --model <model>` via `child_process.execFileSync` (no shell, arg-array form). Uses your existing `claude` CLI auth.
+- Default model `claude-sonnet-4-6`; override with `TUNE_MODEL=claude-opus-4-6`. Default timeout 120s per call; override with `TUNE_TIMEOUT_MS=180000`.
+- `claude` binary resolved via PATH by default; override with `TUNE_CLAUDE_BIN=/absolute/path/to/claude`. Needed when Claude Code is bundled with the desktop app but not on PATH — on Windows the binary lives at `%APPDATA%\Claude\claude-code\<version>\claude.exe`, which is not a PATH entry by default. Set this env var to that absolute path to point the tuning harness at it.
+- Windows-only: Claude Code 2.1.x shells out to git-bash for some tooling and errors out with `Claude Code on Windows requires git-bash ...` unless `CLAUDE_CODE_GIT_BASH_PATH` points at `bash.exe` (typically `C:\Users\<you>\AppData\Local\Programs\Git\usr\bin\bash.exe` or `C:\Program Files\Git\bin\bash.exe`). The transport sees the non-zero exit and returns `null` → loop exits `"exhausted"`. Set this env var when invoking the LLM tuning path on Windows.
+- Proposer emits `ProposalBundle = { rule, summary, targets: [{target, before, after}, ...] }`. One iteration can move multiple levers coherently.
+- Invalid LLM output triggers one bounded retry with the parse/validation error as context. If the retry also fails, the iteration is skipped (outcome: `"invalid-output"`).
+- Budget defaults for the LLM path: 30 iterations / 45 minutes wall-clock. Override with `--max-iters=N --max-wall-ms=N` as usual.
+- `tune:llm` script is bash-native env-var syntax; run under Git Bash or a POSIX shell on Windows, not cmd.exe.
+- No real CLI call is made from any unit test — `llmProposer.js` and `claudeTransport.js` are fixture- and fake-exec-tested. Verify wiring with `TUNE_PROPOSER=llm npm run tune:dry-run` (2 iterations, real CLI, no writes).
