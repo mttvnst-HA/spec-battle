@@ -2,3 +2,6 @@ node_modules
 dist
 .vite
 balance-report.json
+.tuning-abort
+tuning-summary.md
+balance-baseline.next.json

@@ -3,7 +3,10 @@
     "name": "SUBMIT RFI",
     "emoji": "📝",
     "desc": "Request for Information - paper trail bomb",
-    "dmg": [14, 22],
+    "dmg": [
+      14,
+      22
+    ],
     "mp": 0,
     "effect": null
   },
@@ -11,7 +14,10 @@
     "name": "CLAIM DSC",
     "emoji": "🪨",
     "desc": "Differing Site Conditions - FAR 52.236-2",
-    "dmg": [30, 44],
+    "dmg": [
+      30,
+      44
+    ],
     "mp": 15,
     "effect": null
   },
@@ -19,7 +25,10 @@
     "name": "VALUE ENGINEER",
     "emoji": "💰",
     "desc": "Propose cheaper alternative, pocket the split",
-    "dmg": [0, 0],
+    "dmg": [
+      0,
+      0
+    ],
     "mp": 15,
     "effect": "heal"
   },
@@ -27,7 +36,10 @@
     "name": "SCHEDULE DELAY",
     "emoji": "⏳",
     "desc": "Float manipulation and critical path warfare",
-    "dmg": [20, 32],
+    "dmg": [
+      20,
+      32
+    ],
     "mp": 10,
     "effect": "slow"
   },
@@ -35,7 +47,10 @@
     "name": "OR-EQUAL GAMBIT",
     "emoji": "🔄",
     "desc": "Submit cheap substitute, pocket the difference",
-    "dmg": [18, 30],
+    "dmg": [
+      18,
+      30
+    ],
     "mp": 12,
     "effect": null
   },
@@ -43,7 +58,10 @@
     "name": "RESERVE RIGHTS",
     "emoji": "🛡️",
     "desc": "Defensive posture - preserve future claims",
-    "dmg": [8, 14],
+    "dmg": [
+      8,
+      14
+    ],
     "mp": 8,
     "effect": "defense"
   }

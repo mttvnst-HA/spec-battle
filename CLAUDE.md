@@ -16,7 +16,7 @@ A turn-based RPG where a federal construction ENGINEER battles a CONTRACTOR usin
 Modular file structure:
 
 ```
-ROADMAP.md               -- Autonomous development roadmap (Phase 1 foundation + stubs)
+ROADMAP.md               -- Autonomous development roadmap (Phase 1 foundation + 2.1 heuristic tuning + 2.2 LLM proposer design; see file for current state)
 plans/                   -- Implementation plans, one per roadmap phase
 scripts/
   simulate.js            -- CLI: runs N sim games, writes balance-report.json or balance-baseline.json
@@ -97,11 +97,15 @@ The game bible lives at `reference/ktr-vs-engineer-bible.md`. Sources include CM
 npm install
 npm run dev           # Dev server at localhost:5173
 npm run build         # Production build to dist/
-npm test              # Run all 236 tests (vitest)
+npm test              # Run all 275 tests (vitest)
 npm run sim              # Run 200 games per matchup, write balance-report.json
 npm run sim:update-baseline  # Run same, write balance-baseline.json (commit it!)
+npm run tune             # Heuristic tuning loop (up to 50 iters / 15 min)
+npm run tune:dry-run     # 2-iteration smoke test — no file writes, no git ops
 npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 ```
+
+**Commit style:** conventional-commits prefixes (`refactor(content):`, `test(constants):`, `docs(roadmap):`, `fix(test):`, `feat(tune):`) plus a `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>` trailer on AI-assisted commits. Keep subjects under ~70 chars; put rationale in the body.
 
 ### Test Structure
 
@@ -117,6 +121,11 @@ npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 | `sim-runGame` | One-game driver: determinism, termination, move-count tracking |
 | `sim-runBatch` | N-game aggregation: BalanceReport shape, win-rate sums, determinism |
 | `balance-regression` | Diffs a fresh run against `balance-baseline.json` per matchup |
+| `tune-convergence` | Pure convergence math: band check, improvement gate, 2pp guard |
+| `tune-applyProposal` | Proposal write/revert against `content/game.json` + moves files |
+| `tune-proposer` | 6-rule round-robin heuristic library; shape + step-size invariants (relaxed in Phase 2.2a) |
+| `tune-gitOps` | Commit-wrapper escaping (shell metacharacters); injectable exec |
+| `tune-loop` | Orchestrator: convergence, budget, kill-switch, improvement gating |
 
 ## Simulation harness
 
@@ -128,3 +137,15 @@ Headless, seeded simulation of spec-battle. Lives under `src/sim/` and `scripts/
 - Determinism comes from `src/game/rng.js` (xorshift32). When unseeded, it delegates to `Math.random()` so existing `vi.spyOn(Math, "random")` tests keep working.
 - `aiPolicy` only supports the contractor side (wraps `pickAIMove`); calling it with `"engineer"` throws. Engineer has no shipping AI — use `randomPolicy` or a custom one.
 - Any intentional balance change requires regenerating and committing a new baseline.
+
+## Tuning harness
+
+Heuristic balance tuner. Lives under `src/tune/` and `scripts/tune.js`.
+
+- `npm run tune` runs the loop; `npm run tune:dry-run` is the 2-iter smoke test (no writes/commits).
+- Loop NEVER writes `balance-baseline.json`. On exit it writes `balance-baseline.next.json` (gitignored); human accepts via `npm run sim:update-baseline`.
+- Kill switch: `.tuning-abort` file (gitignored) primary, SIGINT/SIGTERM, budget caps. Takes priority over budget exhaustion.
+- `vitest.config.js` has `fileParallelism: false` — required because `tune-applyProposal` and `tune-proposer` tests mutate real `content/*.json`. Do NOT remove it; parallel workers interleave writes and produce truncated-JSON errors.
+- `writeProposal` uses `JSON.stringify(obj, null, 2)`. After the Phase 2.2a normalization pass (commit `23e22d1`), all `content/*.json` files are stored in that exact format, so write-then-revert produces byte-identical output — no cosmetic diff. If you hand-edit a content JSON file with a different formatter, re-run the Task 1 normalization before committing.
+- Phase 2.2a (commits `fee149c` + `7fd24ed`) relaxed value-hardcoded assertions in `constants.test.js` (Game Balance Constants block, structural/range checks) and `tune-proposer.test.js` (propose round-robin block, shape + step-size invariants). `content-loader.test.js` was already structural. Drift regression coverage lives in `balance-regression.test.js` against `balance-baseline.json`.
+- Proposer's `propose(report, iteration, cfg = readConfig())` accepts an injected config for fully in-memory tests.

@@ -1,3 +1,5 @@
+import gameJson from "../content/game.json" with { type: "json" };
+
 export const PIXEL_FONT = `"Press Start 2P", monospace`;
 
 export const C = {
@@ -23,16 +25,7 @@ export const TIMINGS = {
   blinkInterval: 600,
 };
 
-export const GAME = {
-  critRate: 0.12,
-  critMultiplier: 1.6,
-  mpRegen: 4,
-  stunChance: 0.3,
-  slowChance: 0.4,
-  weakenedMultiplier: 1.3,
-  defMultiplier: 0.5,
-  healRange: [28, 45],
-};
+export const GAME = gameJson;
 
 export { rand, pick } from "./game/rng.js";
 export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
