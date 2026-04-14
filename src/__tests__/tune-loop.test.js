@@ -217,4 +217,29 @@ describe("runLoop", () => {
     expect(fs._store.has("summary.md")).toBe(true);
     expect(fs._store.has(".abort")).toBe(false); // loop cleaned it up
   });
+
+  it("abort takes priority over iter-limit exhaustion", () => {
+    // When iter reaches iterLimit on the same tick as abort, prefer 'aborted'.
+    const fs = makeFakeFs();
+    const clock = makeFakeClock();
+    const git = makeFakeGit();
+    let iter = 0;
+    const result = runLoop({
+      runSim: () => {
+        // After iter 1 body, set abort. iter 2 starts: abort check first → aborted.
+        if (iter === 1) fs.writeFileSync(".abort", "1");
+        iter++;
+        return report(0.86, 0.72);
+      },
+      runTests: () => ({ ok: true }),
+      git, fs, clock,
+      proposer: { propose: () => ({ rule: "x", target: "GAME.mpRegen", before: 4, after: 4, summary: "noop" }) },
+      apply: { write: () => {}, revert: () => {} },
+      convergence: makeFakeConvergence(),
+      maxIterations: 1, maxWallMs: 1e9, abortFile: ".abort",
+      summaryFile: "summary.md", nextBaselineFile: "next.json",
+      dryRun: false, log: () => {},
+    });
+    expect(result.reason).toBe("aborted");
+  });
 });

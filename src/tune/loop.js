@@ -52,11 +52,13 @@ export function runLoop({
     return { reason, history, best: current };
   };
 
-  for (let iter = 1; iter < iterLimit; iter++) {
+  for (let iter = 1; ; iter++) {
     if (fs.existsSync(abortFile)) return finalize("aborted");
     if (clock.now() - start >= maxWallMs) return finalize("budget-wall");
+    if (iter > iterLimit) return finalize("budget-iters");
     if (convergence.isConverged(history.map((h) => h.report))) return finalize("converged");
 
+    // Proposer uses 0-based iteration index (commit labels use 1-based `iter`).
     const proposal = proposer.propose(current, iter - 1);
     if (!proposal) return finalize("exhausted");
 
@@ -85,6 +87,4 @@ export function runLoop({
       accepted.push(false);
     }
   }
-
-  return finalize("budget-iters");
 }
