@@ -3,7 +3,7 @@
 // Usage:
 //   node scripts/simulate.js                         # writes balance-report.json
 //   node scripts/simulate.js --update-baseline      # writes balance-baseline.json
-//   node scripts/simulate.js --count=200 --seed=1   # tune batch size / seed
+//   node scripts/simulate.js --count=N --seed=1    # tune batch size / seed (default count: 1000)
 
 import fs from "node:fs";
 import { runBatch } from "../src/sim/runBatch.js";

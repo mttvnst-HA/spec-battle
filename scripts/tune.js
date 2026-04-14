@@ -127,6 +127,9 @@ const result = runLoop({
 });
 
 console.log(`[tune] stopped: ${result.reason}`);
+if (result.reason === "exhausted" && result.lastError) {
+  console.error(`[tune] last transport error: ${result.lastError}`);
+}
 if (!dryRun) {
   console.log(`[tune] summary:  tuning-summary.md`);
   console.log(`[tune] next baseline: balance-baseline.next.json`);
