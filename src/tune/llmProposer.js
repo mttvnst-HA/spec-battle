@@ -292,3 +292,36 @@ export function parseBundle(rawCliOutput, currentState) {
 
   return { ok: true, bundle: { rule: obj.rule, summary: obj.summary, targets: obj.targets } };
 }
+
+// ---- createLlmProposer ----
+
+/**
+ * @param {Object} deps
+ * @param {{ send(prompt: string): string }} deps.transport  - from createCliTransport
+ * @param {() => Object} [deps.getCurrentState]              - defaults to readConfig(); injectable for tests
+ * @returns {{ propose(report, iteration, history, opts?): ProposeResult }}
+ */
+export function createLlmProposer({ transport, getCurrentState = readConfig }) {
+  return {
+    propose(report, iteration, history, opts = {}) {
+      const currentState = getCurrentState();
+      const prompt = buildPrompt({
+        currentState,
+        currentReport: report,
+        history: history ?? [],
+        retryError: opts.retryError,
+      });
+
+      let raw;
+      try {
+        raw = transport.send(prompt);
+      } catch (err) {
+        // Non-recoverable transport failure (CLI missing, timeout, etc.).
+        // Return null so the loop stops with reason "exhausted".
+        return null;
+      }
+
+      return parseBundle(raw, currentState);
+    },
+  };
+}
