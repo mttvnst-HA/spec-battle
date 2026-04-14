@@ -384,6 +384,41 @@ describe("runLoop", () => {
       const accepted = result.history.find((h) => h.outcome === "accepted");
       expect(accepted.worstDistanceBefore).toBeCloseTo(0.20, 6);
       expect(accepted.worstDistanceAfter).toBeCloseTo(0.10, 6);
+      expect(accepted.worstDistanceCandidate).toBeCloseTo(0.10, 6);
+    });
+  });
+
+  describe("worstDistanceCandidate on not-improvement", () => {
+    it("captures the candidate distance even when the bundle is rejected", () => {
+      const base = { matchups: [
+        { matchup: "a", engineerWinRate: 0.70, avgTurns: 12, moveFrequency: { engineer: {}, contractor: {} } },
+        { matchup: "b", engineerWinRate: 0.70, avgTurns: 12, moveFrequency: { engineer: {}, contractor: {} } },
+      ] };
+      // Candidate is a "close miss" — slightly worse than current (so isImprovement fails)
+      // but we still want the distance recorded.
+      const worseCandidate = { matchups: [
+        { matchup: "a", engineerWinRate: 0.71, avgTurns: 12, moveFrequency: { engineer: {}, contractor: {} } },
+        { matchup: "b", engineerWinRate: 0.71, avgTurns: 12, moveFrequency: { engineer: {}, contractor: {} } },
+      ] };
+      let n = 0;
+      const result = runLoop({
+        runSim: () => (n++ === 0 ? base : worseCandidate),
+        runTests: () => ({ ok: true }),
+        git: { commitAll: () => {} },
+        fs: { existsSync: () => false, writeFileSync: () => {}, unlinkSync: () => {} },
+        clock: { now: () => 0 },
+        proposer: { propose: () => ({ ok: true,
+          bundle: { rule: "r", summary: "s",
+            targets: [{ target: "GAME.critRate", before: 0.12, after: 0.14 }] } }) },
+        apply: { write: () => {}, revert: () => {} },
+        convergence: { isConverged: () => false, isImprovement: () => false },
+        maxIterations: 1,
+      });
+      const notImp = result.history.find((h) => h.outcome === "not-improvement");
+      expect(notImp.worstDistanceBefore).toBeCloseTo(0.20, 6);
+      expect(notImp.worstDistanceCandidate).toBeCloseTo(0.21, 6);
+      // not-improvement never records worstDistanceAfter:
+      expect(notImp.worstDistanceAfter).toBeUndefined();
     });
   });
 });
