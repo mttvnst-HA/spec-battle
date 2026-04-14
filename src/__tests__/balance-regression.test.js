@@ -6,8 +6,8 @@ import { runBatch } from "../sim/runBatch.js";
 import { randomPolicy, aiPolicy } from "../sim/policies.js";
 import { seed } from "../game/rng.js";
 
-const WIN_RATE_TOLERANCE = 0.03;  // ±3pp
-const MOVE_FREQ_TOLERANCE = 0.05; // ±5pp
+const WIN_RATE_TOLERANCE = 0.005;  // ±0.5pp — seeded xorshift32 should produce zero drift
+const MOVE_FREQ_TOLERANCE = 0.005; // ±0.5pp — headroom for single-game outcome shifts
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const baselinePath = path.resolve(__dirname, "../../balance-baseline.json");
