@@ -61,10 +61,11 @@ function PixelSprite({ data, size = 5, shake, flash, flipX }) {
   const rows = data.length;
   const cols = Math.max(...data.map(r => r.length));
   return (
+    <div style={{ transform: flipX ? "scaleX(-1)" : "none" }}>
     <div style={{
       filter: anim === "flash" ? "brightness(3)" : "none",
       animation: anim === "shake" ? "rpg-shake 0.1s 3" : "rpg-idle 1.5s ease-in-out infinite",
-      transform: flipX ? "scaleX(-1)" : "none", imageRendering: "pixelated",
+      imageRendering: "pixelated",
     }}>
       <svg width={cols * size} height={rows * size} viewBox={`0 0 ${cols * size} ${rows * size}`} xmlns="http://www.w3.org/2000/svg" style={{ display: "block" }}>
         {data.map((row, ry) => [...row].map((ch, cx) => {
@@ -73,6 +74,7 @@ function PixelSprite({ data, size = 5, shake, flash, flipX }) {
           return <rect key={`${ry}-${cx}`} x={cx * size} y={ry * size} width={size} height={size} fill={color} />;
         }))}
       </svg>
+    </div>
     </div>
   );
 }
@@ -242,8 +244,8 @@ function resolveMove(state, attacker, move, isPlayer) {
     { text: `  "${quote}"`, color: C.white },
   ];
 
-  if (isPlayer) { s.engMp = Math.max(0, s.engMp - move.mp); s.engFlash += 1; }
-  else { s.conMp = Math.max(0, s.conMp - move.mp); s.conFlash += 1; }
+  if (isPlayer) { s.engMp = Math.max(0, s.engMp - move.mp); if (move.effect !== "heal") s.engFlash += 1; }
+  else { s.conMp = Math.max(0, s.conMp - move.mp); if (move.effect !== "heal") s.conFlash += 1; }
 
   // Heal
   if (move.effect === "heal") {
@@ -261,21 +263,14 @@ function resolveMove(state, attacker, move, isPlayer) {
     newLog.push({ text: `  Defense raised!`, color: C.cyan });
   }
 
-  // Weaken debuff (NCR lowers opponent defense)
-  if (move.effect === "weaken") {
-    if (isPlayer) s.conStatus = "WEAKENED"; else s.engStatus = "WEAKENED";
-    newLog.push({ text: `  Target's defense lowered!`, color: C.orange });
-  }
-
-  // Damage calc
+  // Damage calc (before applying status effects so DEF+ isn't overwritten)
   let dmg = rand(move.dmg[0], move.dmg[1]);
   const crit = Math.random() < 0.12;
   if (crit) dmg = Math.floor(dmg * 1.6);
   const defStatus = isPlayer ? s.conStatus : s.engStatus;
   if (defStatus === "DEF+") dmg = Math.floor(dmg * 0.5);
-  const atkStatus = isPlayer ? s.engStatus : s.conStatus;
-  // Weakened target takes more damage (applied to defender)
-  if ((isPlayer ? s.conStatus : s.engStatus) === "WEAKENED" && move.effect !== "weaken") {
+  // Weakened target takes more damage
+  if ((isPlayer ? s.conStatus : s.engStatus) === "WEAKENED") {
     dmg = Math.floor(dmg * 1.3);
   }
 
@@ -283,12 +278,15 @@ function resolveMove(state, attacker, move, isPlayer) {
   else { s.engHp = Math.max(0, s.engHp - dmg); s.engShake += 1; }
   newLog.push({ text: `  ${crit ? "CRITICAL HIT! " : ""}${dmg} damage!`, color: crit ? C.yellow : C.red });
 
-  // Stun
+  // Status effects applied AFTER damage
+  if (move.effect === "weaken") {
+    if (isPlayer) s.conStatus = "WEAKENED"; else s.engStatus = "WEAKENED";
+    newLog.push({ text: `  Target's defense lowered!`, color: C.orange });
+  }
   if (move.effect === "stun" && Math.random() < 0.3) {
     if (isPlayer) s.conStatus = "STUNNED"; else s.engStatus = "STUNNED";
     newLog.push({ text: `  Target is STUNNED!`, color: C.yellow });
   }
-  // Slow
   if (move.effect === "slow" && Math.random() < 0.4) {
     if (isPlayer) s.conStatus = "SLOWED"; else s.engStatus = "SLOWED";
     newLog.push({ text: `  Target is SLOWED!`, color: C.orange });
@@ -314,20 +312,22 @@ function pickAIMove(state) {
 
 function reducer(state, action) {
   switch (action.type) {
+    case "PLAYER_STUNNED": {
+      if (state.turn !== "player" || state.engStatus !== "STUNNED") return state;
+      return {
+        ...state, engStatus: null, turn: "enemy", busy: true,
+        log: [...state.log, { text: "ENGINEER is stunned! Turn skipped!", color: C.yellow }],
+      };
+    }
     case "PLAYER_MOVE": {
       const move = action.move;
       if (state.turn !== "player" || state.busy) return state;
+      if (state.engStatus === "STUNNED") return state;
       if (move.mp > state.engMp) {
         return { ...state, log: [...state.log, { text: "Not enough MP!", color: C.red }] };
       }
-      if (state.engStatus === "STUNNED") {
-        return {
-          ...state, engStatus: null, turn: "enemy", busy: true,
-          log: [...state.log, { text: "ENGINEER is stunned! Turn skipped!", color: C.yellow }],
-        };
-      }
       let s = resolveMove(state, ENGINEER, move, true);
-      s.conMp = clamp(s.conMp + 4, 0, CONTRACTOR.maxMp);
+      s.engMp = clamp(s.engMp + 4, 0, ENGINEER.maxMp);
       if (s.conStatus === "DEF+") s.conStatus = null;
       if (s.conHp <= 0) return { ...s, busy: true, winner: "engineer" };
       return { ...s, turn: "enemy", busy: true };
@@ -342,7 +342,7 @@ function reducer(state, action) {
       }
       const move = pickAIMove(state);
       let s = resolveMove(state, CONTRACTOR, move, false);
-      s.engMp = clamp(s.engMp + 4, 0, ENGINEER.maxMp);
+      s.conMp = clamp(s.conMp + 4, 0, CONTRACTOR.maxMp);
       if (s.engStatus === "DEF+") s.engStatus = null;
       if (s.engHp <= 0) return { ...s, busy: true, winner: "contractor" };
       return { ...s, turn: "player", busy: false };
@@ -476,6 +476,14 @@ function BattleScreen({ onEnd }) {
     }
   }, [state.turn, state.busy, state.winner]);
 
+  // Auto-skip player turn when stunned
+  useEffect(() => {
+    if (state.turn === "player" && state.engStatus === "STUNNED" && !state.winner) {
+      const t = setTimeout(() => dispatch({ type: "PLAYER_STUNNED" }), 800);
+      return () => clearTimeout(t);
+    }
+  }, [state.turn, state.engStatus, state.winner]);
+
   useEffect(() => {
     if (state.winner) {
       const t = setTimeout(() => onEnd(state.winner), 1200);
@@ -483,7 +491,8 @@ function BattleScreen({ onEnd }) {
     }
   }, [state.winner, onEnd]);
 
-  const canAct = state.turn === "player" && !state.busy && !state.winner;
+  const isStunned = state.turn === "player" && state.engStatus === "STUNNED";
+  const canAct = state.turn === "player" && !state.busy && !state.winner && !isStunned;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: 4, padding: "4px 0" }}>
@@ -505,7 +514,7 @@ function BattleScreen({ onEnd }) {
         fontFamily: PIXEL_FONT, fontSize: 6, textAlign: "center",
         color: state.turn === "player" ? C.bright : C.orange, letterSpacing: 1, padding: "2px 0",
       }}>
-        {state.winner ? "" : state.turn === "player" ? ">> YOUR TURN <<" : "... CONTRACTOR is reviewing the contract ..."}
+        {state.winner ? "" : isStunned ? "!! STUNNED !!" : state.turn === "player" ? ">> YOUR TURN <<" : "... CONTRACTOR is reviewing the contract ..."}
       </div>
 
       {/* Log */}
