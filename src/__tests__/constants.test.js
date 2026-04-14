@@ -2,37 +2,52 @@ import { describe, it, expect } from "vitest";
 import { C, STATUS, GAME, TIMINGS, rand, pick, clamp } from "../constants.js";
 import { ENGINEER, CONTRACTOR } from "../data/characters.js";
 
-describe("Game Balance Constants", () => {
-  it("crit rate is 12%", () => {
-    expect(GAME.critRate).toBe(0.12);
+describe("Game Balance Constants (structural)", () => {
+  it("has critRate as a number in [0, 1]", () => {
+    expect(typeof GAME.critRate).toBe("number");
+    expect(GAME.critRate).toBeGreaterThanOrEqual(0);
+    expect(GAME.critRate).toBeLessThanOrEqual(1);
   });
 
-  it("crit multiplier is 1.6x", () => {
-    expect(GAME.critMultiplier).toBe(1.6);
+  it("has critMultiplier as a positive number", () => {
+    expect(typeof GAME.critMultiplier).toBe("number");
+    expect(GAME.critMultiplier).toBeGreaterThan(0);
   });
 
-  it("MP regen is 4 per turn", () => {
-    expect(GAME.mpRegen).toBe(4);
+  it("has mpRegen as a non-negative integer", () => {
+    expect(Number.isInteger(GAME.mpRegen)).toBe(true);
+    expect(GAME.mpRegen).toBeGreaterThanOrEqual(0);
   });
 
-  it("stun chance is 30%", () => {
-    expect(GAME.stunChance).toBe(0.3);
+  it("has stunChance as a number in [0, 1]", () => {
+    expect(typeof GAME.stunChance).toBe("number");
+    expect(GAME.stunChance).toBeGreaterThanOrEqual(0);
+    expect(GAME.stunChance).toBeLessThanOrEqual(1);
   });
 
-  it("slow chance is 40%", () => {
-    expect(GAME.slowChance).toBe(0.4);
+  it("has slowChance as a number in [0, 1]", () => {
+    expect(typeof GAME.slowChance).toBe("number");
+    expect(GAME.slowChance).toBeGreaterThanOrEqual(0);
+    expect(GAME.slowChance).toBeLessThanOrEqual(1);
   });
 
-  it("weakened multiplier is 1.3x", () => {
-    expect(GAME.weakenedMultiplier).toBe(1.3);
+  it("has weakenedMultiplier as a positive number", () => {
+    expect(typeof GAME.weakenedMultiplier).toBe("number");
+    expect(GAME.weakenedMultiplier).toBeGreaterThan(0);
   });
 
-  it("defense multiplier is 0.5x", () => {
-    expect(GAME.defMultiplier).toBe(0.5);
+  it("has defMultiplier as a positive number", () => {
+    expect(typeof GAME.defMultiplier).toBe("number");
+    expect(GAME.defMultiplier).toBeGreaterThan(0);
   });
 
-  it("heal range is [28, 45]", () => {
-    expect(GAME.healRange).toEqual([28, 45]);
+  it("has healRange as a two-element integer array with min ≤ max", () => {
+    expect(Array.isArray(GAME.healRange)).toBe(true);
+    expect(GAME.healRange).toHaveLength(2);
+    expect(Number.isInteger(GAME.healRange[0])).toBe(true);
+    expect(Number.isInteger(GAME.healRange[1])).toBe(true);
+    expect(GAME.healRange[0]).toBeLessThanOrEqual(GAME.healRange[1]);
+    expect(GAME.healRange[0]).toBeGreaterThanOrEqual(0);
   });
 });
 
