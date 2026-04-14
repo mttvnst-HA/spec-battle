@@ -174,6 +174,25 @@ describe("Reducer", () => {
     });
   });
 
+  describe("ENEMY_MOVE with explicit move override", () => {
+    it("uses action.move when provided instead of pickAIMove", () => {
+      const s = { ...initState(), turn: "enemy", busy: true };
+      const explicitMove = CONTRACTOR.moves[0]; // SUBMIT RFI
+      const next = reducer(s, { type: "ENEMY_MOVE", move: explicitMove });
+      // Move was used: contractor MP decreased by that move's cost (after regen)
+      const expectedMp = Math.min(CONTRACTOR.maxMp, CONTRACTOR.maxMp - explicitMove.mp + CONTRACTOR.mpRegen);
+      expect(next.conMp).toBe(expectedMp);
+      expect(next.turn).toBe("player");
+    });
+
+    it("falls back to pickAIMove when action.move is absent", () => {
+      const s = { ...initState(), turn: "enemy", busy: true };
+      const next = reducer(s, { type: "ENEMY_MOVE" });
+      // Should still advance — exact move not asserted (picked by pickAIMove)
+      expect(next.turn).toBe("player");
+    });
+  });
+
   describe("RESET", () => {
     it("returns to initial state", () => {
       const s = {

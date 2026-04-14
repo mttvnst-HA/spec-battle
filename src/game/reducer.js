@@ -60,7 +60,7 @@ export function reducer(state, action) {
           log: [...state.log, { text: "CONTRACTOR is stunned! Turn skipped!", color: C.yellow }],
         };
       }
-      const move = pickAIMove(state);
+      const move = action.move || pickAIMove(state);
       let s = resolveMove(state, CONTRACTOR, move, false);
       s.conMp = clamp(s.conMp + CONTRACTOR.mpRegen, 0, CONTRACTOR.maxMp);
       if (s.engStatus === STATUS.DEF_PLUS) s.engStatus = null;
