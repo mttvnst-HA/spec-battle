@@ -70,11 +70,63 @@ None added.
 - LLM-as-player
 - CI integration beyond what `npm test` already does
 
-## Phase 2 — Autonomous tuning loop (stub)
+## Phase 2 — Autonomous tuning loop
 
-- **Goal:** Claude Code runs a Ralph-style loop that proposes changes to `GAME` constants and per-move stats, verifies against tests + baseline, commits passing changes, and stops at convergence or budget.
-- **Depends on:** Phase 1 (needs `npm run sim` + regression tests).
-- **Biggest parked question:** what counts as "converged"? Win-rate delta within tolerance for N consecutive iterations? Budget exhaustion? Both?
+**Goal:** A single command runs a Ralph-style loop that proposes tweaks to `GAME` constants and per-move stats, verifies each tweak against tests + sim, commits accepted changes, and stops at convergence / budget / kill-switch. The committed baseline is never touched by the loop; a human reviews the resulting branch and runs `npm run sim:update-baseline` to accept.
+
+Split into two sub-phases. Phase 2.1 ships first; Phase 2.2 is unlocked only if 2.1's heuristic proposer plateaus short of the convergence band.
+
+### Phase 2.1 — Heuristic proposer
+
+**Goal:** Pure-JS rule-library proposer closes the balance gap (current 86.5% / 71.5% engineer) enough to hit the target band, or falsifies itself quickly and informs 2.2.
+
+#### Acceptance criteria
+
+1. `npm run tune` runs the loop end-to-end and exits cleanly on convergence, budget, or abort.
+2. `npm run tune:dry-run` runs 2 iterations with no file writes and no git ops — pre-flight safety check.
+3. An automated vitest case proves the kill-switch works: drives the loop with a no-op proposer, writes `.tuning-abort` mid-run, asserts graceful stop + summary written.
+4. All existing tests stay green. Balance-regression test honors `SKIP_BALANCE_REGRESSION=1` so the loop can run without fighting itself.
+5. On a 50-iteration run from clean master, either: engineer win rate lands in **[45%, 55%]** for both matchups for 3 consecutive iterations (converged), or the final `tuning-summary.md` names the specific rule-library ceiling (informs Phase 2.2).
+
+#### Locked decisions
+
+- **Convergence:** engineer win rate ∈ [45%, 55%] in *both* matchups for 3 consecutive iterations, with no iteration regressing the other matchup by more than 2pp.
+- **Budget:** max 50 iterations *or* 15 minutes wall-clock, whichever hits first. No API budget — proposer is local code.
+- **Baseline update policy:** loop never writes `balance-baseline.json`. Tracks best-so-far in memory. On exit, writes `balance-baseline.next.json` + `tuning-summary.md` to the branch. Human runs `npm run sim:update-baseline` to accept.
+- **Kill-switch:** `.tuning-abort` file (gitignored) primary; SIGINT/SIGTERM secondary; budget caps as hard backstop. Kill-switch has an automated test.
+- **Search space:** `GAME` scalars + per-move `damage` / `mp` / effect chances in `content/moves/*.json`. Step sizes clamped (±1 int, ±0.02 rate, ±0.05 multiplier). Refuses out-of-bound values.
+- **Per-iteration work:** propose → apply → `npm test` (with regression skipped) → `runBatch` (200 games × 2 matchups, seed=1) → accept-if-better → `git commit` or revert.
+- **"Better"** = strictly closer to 50% in the *worst* matchup, with no >2pp regression in the other matchup.
+
+#### Components to build
+
+- `src/tune/proposer.js` — rule library + `propose(report) → Proposal | null`
+- `src/tune/applyProposal.js` — serialize/revert a proposal against `constants.js` + `content/moves/*.json`
+- `src/tune/convergence.js` — `isConverged(history)`, `isImprovement(prev, curr)`
+- `src/tune/loop.js` — main loop (injectable clock/fs/git for testability)
+- `src/tune/gitOps.js` — thin wrapper around `git add`/`git commit`
+- `scripts/tune.js` — CLI entry (`--max-iters`, `--max-wall`, `--dry-run`)
+- Tests for each module + end-to-end kill-switch test
+- Modify `src/__tests__/balance-regression.test.js` to honor `SKIP_BALANCE_REGRESSION=1`
+- `.gitignore` additions: `.tuning-abort`, `tuning-summary.md`, `balance-baseline.next.json`
+- `package.json` scripts: `tune`, `tune:dry-run`
+
+#### Dependencies added
+
+None.
+
+#### Out of scope for Phase 2.1
+
+- LLM-driven proposer (that's 2.2)
+- Auto-merging or auto-updating committed baseline
+- Tuning move *identity* (names, effects) — only numeric stats
+- Changes to sim harness itself
+
+### Phase 2.2 — LLM proposer (stub)
+
+- **Goal:** When Phase 2.1 plateaus short of the convergence band, replace `src/tune/proposer.js` with a Claude Code subprocess call. Same loop, smarter proposals.
+- **Depends on:** Phase 2.1 shipping and producing a `tuning-summary.md` that shows the heuristic ceiling.
+- **Parked questions:** API budget per run; prompt shape (full `balance-report.json` + move JSON, or targeted slices?); how to keep proposals deterministic enough for a repeatable vitest smoke test.
 
 ## Phase 3 — Bayesian optimization sweep (stub)
 
