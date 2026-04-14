@@ -121,7 +121,7 @@ npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 | `balance-regression` | Diffs a fresh run against `balance-baseline.json` per matchup |
 | `tune-convergence` | Pure convergence math: band check, improvement gate, 2pp guard |
 | `tune-applyProposal` | Proposal write/revert against `content/game.json` + moves files |
-| `tune-proposer` | 6-rule round-robin heuristic library; hardcodes baseline numbers |
+| `tune-proposer` | 6-rule round-robin heuristic library; shape + step-size invariants (relaxed in Phase 2.2a) |
 | `tune-gitOps` | Commit-wrapper escaping (shell metacharacters); injectable exec |
 | `tune-loop` | Orchestrator: convergence, budget, kill-switch, improvement gating |
 
