@@ -34,6 +34,5 @@ export const GAME = {
   healRange: [28, 45],
 };
 
-export const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
-export const pick = (a) => a[Math.floor(Math.random() * a.length)];
+export { rand, pick } from "./game/rng.js";
 export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));

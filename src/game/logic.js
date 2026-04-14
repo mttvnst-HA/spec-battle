@@ -1,9 +1,10 @@
-import { C, STATUS, GAME, rand, pick, clamp } from "../constants.js";
+import { C, STATUS, GAME, clamp } from "../constants.js";
+import { random, rand, pick } from "./rng.js";
 import { CONTRACTOR } from "../data/characters.js";
 
 export function calculateDamage(move, defenderStatus) {
   let dmg = rand(move.dmg[0], move.dmg[1]);
-  const crit = Math.random() < GAME.critRate;
+  const crit = random() < GAME.critRate;
   if (crit) dmg = Math.floor(dmg * GAME.critMultiplier);
   if (defenderStatus === STATUS.DEF_PLUS) dmg = Math.floor(dmg * GAME.defMultiplier);
   if (defenderStatus === STATUS.WEAKENED) dmg = Math.floor(dmg * GAME.weakenedMultiplier);
@@ -12,8 +13,8 @@ export function calculateDamage(move, defenderStatus) {
 
 export function rollStatusEffect(move) {
   if (move.effect === "weaken") return STATUS.WEAKENED;
-  if (move.effect === "stun" && Math.random() < GAME.stunChance) return STATUS.STUNNED;
-  if (move.effect === "slow" && Math.random() < GAME.slowChance) return STATUS.SLOWED;
+  if (move.effect === "stun" && random() < GAME.stunChance) return STATUS.STUNNED;
+  if (move.effect === "slow" && random() < GAME.slowChance) return STATUS.SLOWED;
   return null;
 }
 
