@@ -20,7 +20,7 @@ afterEach(() => seed(null));
 describe("balance regression", () => {
   for (const baselineMatchup of baseline.matchups) {
     it(`${baselineMatchup.matchup} matches baseline within tolerance`, () => {
-      const [engName, , conName] = baselineMatchup.matchup.split("-");
+      const [engName, conName] = baselineMatchup.matchup.split("-vs-");
       const current = runBatch({
         startSeed: baselineMatchup.startSeed,
         count: baselineMatchup.count,
