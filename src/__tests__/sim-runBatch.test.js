@@ -56,4 +56,14 @@ describe("runBatch", () => {
     };
     expect(runBatch(args)).toEqual(runBatch(args));
   });
+
+  it("throws if count <= 0", () => {
+    const args = {
+      startSeed: 1,
+      engPolicy: randomPolicy, conPolicy: randomPolicy,
+      engPolicyName: "random", conPolicyName: "random",
+    };
+    expect(() => runBatch({ ...args, count: 0 })).toThrow();
+    expect(() => runBatch({ ...args, count: -1 })).toThrow();
+  });
 });

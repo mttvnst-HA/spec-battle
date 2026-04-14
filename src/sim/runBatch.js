@@ -1,6 +1,7 @@
 import { runGame } from "./runGame.js";
 
 export function runBatch({ startSeed, count, engPolicy, conPolicy, engPolicyName, conPolicyName }) {
+  if (count <= 0) throw new Error(`runBatch: count must be > 0, got ${count}`);
   let engineerWins = 0;
   let contractorWins = 0;
   let draws = 0;
