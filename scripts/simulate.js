@@ -27,6 +27,11 @@ function flag(name, fallback) {
 const count = flag("count", 200);
 const startSeed = flag("seed", 1);
 
+if (!Number.isInteger(count) || count <= 0) {
+  console.error(`Invalid --count=${count} (must be a positive integer)`);
+  process.exit(1);
+}
+
 const matchups = [
   {
     name: "random-vs-random",
