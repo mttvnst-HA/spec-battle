@@ -164,5 +164,5 @@ Heuristic balance tuner. Lives under `src/tune/` and `scripts/tune.js`.
 - Proposer emits `ProposalBundle = { rule, summary, targets: [{target, before, after}, ...] }`. One iteration can move multiple levers coherently.
 - Invalid LLM output triggers one bounded retry with the parse/validation error as context. If the retry also fails, the iteration is skipped (outcome: `"invalid-output"`).
 - Budget defaults for the LLM path: 30 iterations / 45 minutes wall-clock. Override with `--max-iters=N --max-wall-ms=N` as usual.
-- `tune:llm` script is bash-native env-var syntax; run under Git Bash or a POSIX shell on Windows, not cmd.exe.
+- `tune:llm` script is portable — passes `--llm` to `scripts/tune.js`, which is equivalent to setting `TUNE_PROPOSER=llm`. Works under cmd.exe, PowerShell, and Git Bash. Prefer `npm run tune:llm` over `TUNE_PROPOSER=llm npm run tune` for consistency across shells.
 - No real CLI call is made from any unit test — `llmProposer.js` and `claudeTransport.js` are fixture- and fake-exec-tested. Verify wiring with `TUNE_PROPOSER=llm npm run tune:dry-run` (2 iterations, real CLI, no writes).

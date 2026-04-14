@@ -41,6 +41,11 @@ function flag(name, fallback) {
   return n;
 }
 const dryRun = process.argv.includes("--dry-run");
+// --llm is CLI sugar for TUNE_PROPOSER=llm. Use this in package.json scripts
+// to stay portable across shells — Windows npm shells out to cmd.exe, which
+// does not understand bash-style `VAR=value cmd` env-var prefixes in script
+// definitions. --llm keeps the script body shell-agnostic.
+const forceLlm = process.argv.includes("--llm");
 const maxIterations = flag("max-iters", 30);
 const maxWallMs = flag("max-wall-ms", 45 * 60 * 1000);
 
@@ -88,7 +93,7 @@ function createHeuristicAdapter(heuristicProposeFn) {
 }
 
 function selectProposer() {
-  const kind = process.env.TUNE_PROPOSER ?? "heuristic";
+  const kind = forceLlm ? "llm" : (process.env.TUNE_PROPOSER ?? "heuristic");
   if (kind === "heuristic") return createHeuristicAdapter(heuristicPropose);
   if (kind === "llm") {
     const model = process.env.TUNE_MODEL ?? "claude-sonnet-4-6";
