@@ -3,54 +3,54 @@
     {
       "matchup": "random-vs-random",
       "startSeed": 1,
-      "count": 200,
-      "engineerWinRate": 0.865,
-      "contractorWinRate": 0.135,
+      "count": 1000,
+      "engineerWinRate": 0.852,
+      "contractorWinRate": 0.148,
       "drawRate": 0,
-      "avgTurns": 12.46,
+      "avgTurns": 12.69,
       "moveFrequency": {
         "engineer": {
-          "REJECT SUBMITTAL": 0.3213,
-          "CITE UFC": 0.1464,
-          "INVOKE SHALL": 0.1299,
-          "RED-LINE SPEC": 0.1486,
-          "CURE NOTICE": 0.1164,
-          "ISSUE NCR": 0.1374
+          "REJECT SUBMITTAL": 0.3323,
+          "CITE UFC": 0.1496,
+          "INVOKE SHALL": 0.124,
+          "RED-LINE SPEC": 0.1406,
+          "CURE NOTICE": 0.1107,
+          "ISSUE NCR": 0.1428
         },
         "contractor": {
-          "SCHEDULE DELAY": 0.1616,
-          "SUBMIT RFI": 0.1958,
-          "RESERVE RIGHTS": 0.1764,
-          "CLAIM DSC": 0.1542,
-          "VALUE ENGINEER": 0.1477,
-          "OR-EQUAL GAMBIT": 0.1644
+          "SCHEDULE DELAY": 0.1595,
+          "SUBMIT RFI": 0.1922,
+          "RESERVE RIGHTS": 0.1759,
+          "CLAIM DSC": 0.1541,
+          "VALUE ENGINEER": 0.1564,
+          "OR-EQUAL GAMBIT": 0.1618
         }
       }
     },
     {
       "matchup": "random-vs-ai",
       "startSeed": 1,
-      "count": 200,
-      "engineerWinRate": 0.715,
-      "contractorWinRate": 0.285,
+      "count": 1000,
+      "engineerWinRate": 0.718,
+      "contractorWinRate": 0.282,
       "drawRate": 0,
-      "avgTurns": 18.68,
+      "avgTurns": 18.38,
       "moveFrequency": {
         "engineer": {
-          "REJECT SUBMITTAL": 0.3961,
-          "CITE UFC": 0.1568,
-          "INVOKE SHALL": 0.0928,
-          "RED-LINE SPEC": 0.1238,
-          "CURE NOTICE": 0.0861,
-          "ISSUE NCR": 0.1444
+          "REJECT SUBMITTAL": 0.3946,
+          "CITE UFC": 0.1629,
+          "INVOKE SHALL": 0.0947,
+          "RED-LINE SPEC": 0.1198,
+          "CURE NOTICE": 0.0835,
+          "ISSUE NCR": 0.1446
         },
         "contractor": {
-          "SCHEDULE DELAY": 0.0968,
-          "SUBMIT RFI": 0.2124,
-          "RESERVE RIGHTS": 0.2555,
-          "VALUE ENGINEER": 0.2655,
-          "OR-EQUAL GAMBIT": 0.0863,
-          "CLAIM DSC": 0.0834
+          "SCHEDULE DELAY": 0.094,
+          "SUBMIT RFI": 0.2159,
+          "RESERVE RIGHTS": 0.2416,
+          "VALUE ENGINEER": 0.2733,
+          "OR-EQUAL GAMBIT": 0.0883,
+          "CLAIM DSC": 0.0869
         }
       }
     }

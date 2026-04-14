@@ -9,15 +9,18 @@ function summarizeHistory(history) {
   const lines = [
     "# Tuning Summary",
     "",
-    "| iter | outcome | worst (pp) | rule | summary |",
-    "|------|---------|-----------|------|---------|",
+    "| iter | outcome | worst before | worst candidate | rule | summary |",
+    "|------|---------|--------------|-----------------|------|---------|",
   ];
   for (const h of history) {
     const worstBefore = h.worstDistanceBefore ?? worstDistance(h.report);
-    const worstPp = (worstBefore * 100).toFixed(2);
+    const worstBeforePp = (worstBefore * 100).toFixed(2);
+    const worstCandPp = h.worstDistanceCandidate !== undefined
+      ? (h.worstDistanceCandidate * 100).toFixed(2)
+      : "—";
     const rule = h.bundle?.rule ?? "—";
     const summary = h.bundle?.summary ?? "—";
-    lines.push(`| ${h.iteration} | ${h.outcome} | ${worstPp} | ${rule} | ${summary} |`);
+    lines.push(`| ${h.iteration} | ${h.outcome} | ${worstBeforePp} | ${worstCandPp} | ${rule} | ${summary} |`);
   }
   return lines.join("\n") + "\n";
 }
@@ -43,11 +46,18 @@ export function runLoop({
 
   const finalize = (reason) => {
     if (fs.existsSync(abortFile)) fs.unlinkSync(abortFile);
+    // Surface the most recent transport error (if any) on "exhausted" exits.
+    // Proposers without lastError (heuristic adapter) expose undefined; treat as null.
+    const lastError = (reason === "exhausted" && proposer.lastError) ? proposer.lastError : null;
     if (!dryRun) {
-      fs.writeFileSync(summaryFile, summarizeHistory(history));
+      let summary = summarizeHistory(history);
+      if (lastError) {
+        summary += `\n## Last transport error\n\n${lastError}\n`;
+      }
+      fs.writeFileSync(summaryFile, summary);
       fs.writeFileSync(nextBaselineFile, JSON.stringify(current, null, 2) + "\n");
     }
-    return { reason, history, best: current };
+    return { reason, history, best: current, lastError };
   };
 
   // Runs one propose call with optional retryError. Returns whatever the
@@ -114,6 +124,7 @@ export function runLoop({
     }
 
     const candidate = runSim();
+    const candidateDistance = worstDistance(candidate);
     if (convergence.isImprovement(current, candidate)) {
       if (!dryRun) git.commitAll(`tune(iter-${iter}): ${bundle.summary}`);
       history.push({
@@ -122,7 +133,8 @@ export function runLoop({
         outcome: "accepted",
         report: candidate,
         worstDistanceBefore: worstDistance(current),
-        worstDistanceAfter: worstDistance(candidate),
+        worstDistanceAfter: candidateDistance,
+        worstDistanceCandidate: candidateDistance,
       });
       current = candidate;
     } else {
@@ -133,6 +145,7 @@ export function runLoop({
         outcome: "not-improvement",
         report: current,
         worstDistanceBefore: worstDistance(current),
+        worstDistanceCandidate: candidateDistance,
       });
     }
   }

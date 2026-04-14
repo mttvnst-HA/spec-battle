@@ -79,4 +79,37 @@ describe("createLlmProposer.propose", () => {
     expect(prompt).toContain('"iteration": 1');
     expect(prompt).toContain('"worstDistanceAfter": 0.32');
   });
+
+  it("exposes lastError after a transport throw, clears on next success", () => {
+    let throwNext = true;
+    const send = vi.fn((prompt) => {
+      if (throwNext) throw new Error("ENOENT: claude not found");
+      return JSON.stringify({ type: "result", result: JSON.stringify(validBundle) });
+    });
+    const proposer = createLlmProposer({ transport: { send }, getCurrentState: () => state });
+
+    // First call: transport throws, propose returns null, lastError is set.
+    expect(proposer.propose(report, 0, [])).toBeNull();
+    expect(proposer.lastError).toBe("ENOENT: claude not found");
+
+    // Second call: transport succeeds, propose returns ok, lastError cleared.
+    throwNext = false;
+    const r = proposer.propose(report, 1, []);
+    expect(r.ok).toBe(true);
+    expect(proposer.lastError).toBeNull();
+  });
+
+  it("lastError is null on a fresh proposer (no propose calls yet)", () => {
+    const send = vi.fn();
+    const proposer = createLlmProposer({ transport: { send }, getCurrentState: () => state });
+    expect(proposer.lastError).toBeNull();
+  });
+
+  it("lastError stays null when propose returns {ok:false} from parse failure (not a transport failure)", () => {
+    const send = vi.fn(() => "garbage no json");
+    const proposer = createLlmProposer({ transport: { send }, getCurrentState: () => state });
+    const r = proposer.propose(report, 0, []);
+    expect(r.ok).toBe(false);
+    expect(proposer.lastError).toBeNull();
+  });
 });

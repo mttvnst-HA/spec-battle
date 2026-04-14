@@ -60,9 +60,9 @@ describe("buildPrompt", () => {
     const history = [
       { iteration: 0, bundle: null, outcome: "baseline", report: baseReport },
       mkEntry(1, "tests-failed", { worstDistanceBefore: 0.365 }),
-      mkEntry(2, "accepted", { worstDistanceBefore: 0.365, worstDistanceAfter: 0.320 }),
-      mkEntry(3, "not-improvement", { worstDistanceBefore: 0.320 }),
-      mkEntry(4, "accepted", { worstDistanceBefore: 0.320, worstDistanceAfter: 0.280 }),
+      mkEntry(2, "accepted", { worstDistanceBefore: 0.365, worstDistanceAfter: 0.320, worstDistanceCandidate: 0.320 }),
+      mkEntry(3, "not-improvement", { worstDistanceBefore: 0.320, worstDistanceCandidate: 0.315 }),
+      mkEntry(4, "accepted", { worstDistanceBefore: 0.320, worstDistanceAfter: 0.280, worstDistanceCandidate: 0.280 }),
     ];
     const out = buildPrompt({ currentState: baseState, currentReport: baseReport, history });
     // Last 3 after filtering baseline: entries 2, 3, 4
@@ -77,6 +77,9 @@ describe("buildPrompt", () => {
     const idx = out.indexOf('"iteration": 3');
     const until = out.indexOf('"iteration": 4');
     expect(out.slice(idx, until)).not.toContain('"worstDistanceAfter"');
+    // Candidate distance present for accepted AND not-improvement
+    expect(out).toContain('"worstDistanceCandidate": 0.315');   // entry 3 (not-improvement)
+    expect(out).toContain('"worstDistanceCandidate": 0.28');    // entry 4 (accepted)
   });
 
   it("includes retry context when retryError is provided", () => {
