@@ -6,6 +6,7 @@ export const C = {
   orange: "#ff8844", yellow: "#ffcc00", cyan: "#44ccff",
   white: "#e0e8f0", muted: "#556677",
   hpGreen: "#00cc66", hpRed: "#cc2222", mpBlue: "#3388ee",
+  moneyGold: "#f5c542", ownerBlue: "#8899cc",
 };
 
 export const STATUS = {
@@ -32,6 +33,13 @@ export const GAME = {
   weakenedMultiplier: 1.3,
   defMultiplier: 0.5,
   healRange: [28, 45],
+  // Owner / money system
+  ownerBudget: 600,
+  engPayment: 15,
+  conPayMin: 5,
+  conPayMax: 40,
+  paperworkFailChance: 0.15,
+  walkOffThreshold: 150,
 };
 
 export const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;

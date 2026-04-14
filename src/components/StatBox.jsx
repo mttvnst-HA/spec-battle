@@ -1,12 +1,12 @@
 import { C, PIXEL_FONT, STATUS } from "../constants.js";
 
-function HPBar({ current, max }) {
+function MoneyBar({ current, max }) {
   const pct = Math.max(0, (current / max) * 100);
   return (
     <div style={{ width: "100%", height: 14, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 2, overflow: "hidden" }}>
       <div style={{
         width: `${pct}%`, height: "100%",
-        background: pct > 50 ? C.hpGreen : pct > 25 ? C.orange : C.hpRed,
+        background: pct > 50 ? C.moneyGold : pct > 25 ? C.orange : C.hpRed,
         transition: "width 0.5s ease, background 0.5s ease",
       }} />
     </div>
@@ -32,8 +32,8 @@ export function StatBox({ char, hp, mp, status }) {
         {char.name}
         {status && <span style={{ color: status === STATUS.WEAKENED ? C.orange : C.yellow, marginLeft: 6, fontSize: 8 }}>[{status}]</span>}
       </div>
-      <div style={{ fontSize: 8, color: C.muted, marginBottom: 3 }}>HP {hp}/{char.maxHp}</div>
-      <HPBar current={hp} max={char.maxHp} />
+      <div style={{ fontSize: 8, color: C.moneyGold, marginBottom: 3 }}>💰 ${hp} / ${char.maxHp}</div>
+      <MoneyBar current={hp} max={char.maxHp} />
       <div style={{ fontSize: 8, color: C.muted, marginBottom: 3, marginTop: 6 }}>MP {mp}/{char.maxMp}</div>
       <MPBar current={mp} max={char.maxMp} />
     </div>

@@ -1,6 +1,6 @@
-import { C, STATUS, clamp } from "../constants.js";
+import { C, STATUS, GAME, clamp } from "../constants.js";
 import { ENGINEER, CONTRACTOR } from "../data/characters.js";
-import { resolveMove, pickAIMove } from "./logic.js";
+import { resolveMove, pickAIMove, applyOwnerPayment } from "./logic.js";
 
 export const INTRO_SEQUENCE = [
   { entry: { text: "A wild CONTRACTOR appeared on the jobsite!", color: C.yellow }, delay: 0 },
@@ -18,6 +18,9 @@ export const initState = () => ({
   turn: "intro", busy: false,
   engShake: 0, conShake: 0, engFlash: 0, conFlash: 0,
   winner: null,
+  ownerBudget: GAME.ownerBudget,
+  conProfits: 0,
+  walkOffUnlocked: false,
 });
 
 function checkWinner(s, isPlayer) {
@@ -55,6 +58,7 @@ export function reducer(state, action) {
       if (s.conStatus === STATUS.DEF_PLUS) s.conStatus = null;
       const win = checkWinner(s, true);
       if (win) return win;
+      s = applyOwnerPayment(s, true);
       return { ...s, turn: "enemy", busy: true };
     }
     case "ENEMY_MOVE": {
@@ -71,6 +75,11 @@ export function reducer(state, action) {
       if (s.engStatus === STATUS.DEF_PLUS) s.engStatus = null;
       const win = checkWinner(s, false);
       if (win) return win;
+      s = applyOwnerPayment(s, false);
+      if (!s.walkOffUnlocked && s.conProfits >= GAME.walkOffThreshold) {
+        s.walkOffUnlocked = true;
+        s.log = [...s.log, { text: "!! CONTRACTOR profits threshold reached. WALK OFF THREAT unlocked !!", color: C.red }];
+      }
       return { ...s, turn: "player", busy: false };
     }
     case "RESET": return initState();

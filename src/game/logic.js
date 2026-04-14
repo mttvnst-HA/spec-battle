@@ -1,5 +1,5 @@
 import { C, STATUS, GAME, rand, pick, clamp } from "../constants.js";
-import { CONTRACTOR } from "../data/characters.js";
+import { ENGINEER, CONTRACTOR } from "../data/characters.js";
 
 export function calculateDamage(move, defenderStatus) {
   let dmg = rand(move.dmg[0], move.dmg[1]);
@@ -27,6 +27,13 @@ export function resolveMove(state, attacker, move, isPlayer) {
 
   if (isPlayer) { s.engMp = Math.max(0, s.engMp - move.mp); if (move.effect !== "heal") s.engFlash += 1; }
   else { s.conMp = Math.max(0, s.conMp - move.mp); if (move.effect !== "heal") s.conFlash += 1; }
+
+  // Dud move — engineer walk-off bluff does nothing
+  if (move.dud && isPlayer) {
+    newLog.push({ text: `  Nothing happened. ENGINEER returns to their desk.`, color: C.muted });
+    s.log = [...s.log, ...newLog];
+    return s;
+  }
 
   // Heal
   if (move.effect === "heal") {
@@ -68,7 +75,33 @@ export function resolveMove(state, attacker, move, isPlayer) {
   return s;
 }
 
+export function applyOwnerPayment(state, isEngineerTurn) {
+  let s = { ...state };
+  if (isEngineerTurn) {
+    const paperworkFailed = Math.random() < GAME.paperworkFailChance;
+    if (paperworkFailed) {
+      s.log = [...s.log, { text: `  [OWNER] Engineer invoice rejected — missing DD Form 1149. No payment.`, color: C.orange }];
+    } else {
+      const payment = GAME.engPayment;
+      s.ownerBudget = Math.max(0, s.ownerBudget - payment);
+      s.engHp = clamp(s.engHp + payment, 0, ENGINEER.maxHp);
+      s.log = [...s.log, { text: `  [OWNER \u2192 ENG] Fixed fee: $${payment}. Owner budget: $${s.ownerBudget}`, color: C.moneyGold }];
+    }
+  } else {
+    const payment = rand(GAME.conPayMin, GAME.conPayMax);
+    s.ownerBudget = Math.max(0, s.ownerBudget - payment);
+    s.conHp = clamp(s.conHp + payment, 0, CONTRACTOR.maxHp);
+    s.conProfits = s.conProfits + payment;
+    s.log = [...s.log, { text: `  [OWNER \u2192 CON] Progress payment: $${payment}. Profits: $${s.conProfits}`, color: C.cyan }];
+  }
+  return s;
+}
+
 export function pickAIMove(state) {
+  // Walk Off Threat when unlocked and affordable and engineer isn't near death already
+  if (state.walkOffUnlocked && state.conMp >= 20 && state.engHp > 50) {
+    return CONTRACTOR.moves[6]; // WALK OFF THREAT
+  }
   // Heal if low
   if (state.conHp < 50 && state.conMp >= 15) return CONTRACTOR.moves[2]; // VALUE ENGINEER
   // Use Reserve Rights if weakened
@@ -76,7 +109,7 @@ export function pickAIMove(state) {
   // Favor big attacks if engineer is low
   if (state.engHp < 40 && state.conMp >= 15) return CONTRACTOR.moves[1]; // CLAIM DSC
   // Weighted random from available
-  const avail = CONTRACTOR.moves.filter(m => m.mp <= state.conMp && m.effect !== "heal");
+  const avail = CONTRACTOR.moves.filter(m => !m.walkOffOnly && m.mp <= state.conMp && m.effect !== "heal");
   if (avail.length === 0) return CONTRACTOR.moves[0]; // fallback to RFI
   return pick(avail);
 }

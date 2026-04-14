@@ -66,6 +66,13 @@ export const ENGINEER = {
         "Please be advised...",
       ],
     },
+    {
+      name: "WALK OFF THREAT", emoji: "\u{1F6AA}\u{1F4B8}", desc: "I could just... leave. I could do that.", dmg: [0, 0], mp: 20, effect: null,
+      walkOffOnly: true, dud: true,
+      quotes: [
+        "You threaten to walk off the project... Nothing happens.",
+      ],
+    },
   ],
 };
 
@@ -134,6 +141,17 @@ export const CONTRACTOR = {
         "Please confirm this direction in writing from the Contracting Officer.",
         "Only the Contracting Officer can bind the Government. You're the COR.",
         "Have you been keeping daily logs? Good. They're evidence now.",
+      ],
+    },
+    {
+      name: "WALK OFF THREAT", emoji: "\u{1F6AA}\u{1F4B8}", desc: "Demobilize unless you pay more. NOW.", dmg: [45, 68], mp: 20, effect: "stun",
+      walkOffOnly: true,
+      quotes: [
+        "We are halting all operations pending resolution of our outstanding claims.",
+        "This project is no longer economically viable for us.",
+        "Absent a written change order by close of business Friday, we begin demobilization.",
+        "Crews are being reassigned to other projects.",
+        "We are ceasing all work effective immediately.",
       ],
     },
   ],
