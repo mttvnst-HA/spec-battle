@@ -36,35 +36,35 @@ export function BattleScreen({ onEnd }) {
   const canAct = state.turn === "player" && !state.busy && !state.winner && !isStunned;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: 4, padding: "4px 0" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: 6, padding: "8px 0" }}>
       {/* Battlefield */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "4px 8px", gap: 4 }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "8px 16px", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
           <StatBox char={ENGINEER} hp={state.engHp} mp={state.engMp} status={state.engStatus} />
-          <PixelSprite data={ENGINEER_PIXELS} size={4} shake={state.engShake} flash={state.engFlash} />
+          <PixelSprite data={ENGINEER_PIXELS} size={6} shake={state.engShake} flash={state.engFlash} />
         </div>
-        <div style={{ fontFamily: PIXEL_FONT, fontSize: 9, color: C.yellow, animation: "rpg-pulse 2s ease-in-out infinite", paddingTop: 30 }}>VS</div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+        <div style={{ fontFamily: PIXEL_FONT, fontSize: 14, color: C.yellow, animation: "rpg-pulse 2s ease-in-out infinite", paddingTop: 40 }}>VS</div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
           <StatBox char={CONTRACTOR} hp={state.conHp} mp={state.conMp} status={state.conStatus} />
-          <PixelSprite data={CONTRACTOR_PIXELS} size={4} shake={state.conShake} flash={state.conFlash} flipX />
+          <PixelSprite data={CONTRACTOR_PIXELS} size={6} shake={state.conShake} flash={state.conFlash} flipX />
         </div>
       </div>
 
       {/* Turn indicator */}
       <div style={{
-        fontFamily: PIXEL_FONT, fontSize: 6, textAlign: "center",
-        color: state.turn === "player" ? C.bright : C.orange, letterSpacing: 1, padding: "2px 0",
+        fontFamily: PIXEL_FONT, fontSize: 9, textAlign: "center",
+        color: state.turn === "player" ? C.bright : C.orange, letterSpacing: 1, padding: "4px 0",
       }}>
         {state.winner ? "" : isStunned ? "!! STUNNED !!" : state.turn === "player" ? ">> YOUR TURN <<" : "... CONTRACTOR is reviewing the contract ..."}
       </div>
 
       {/* Log */}
-      <div style={{ flex: "1 1 0", minHeight: 0, padding: "0 6px", display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: "1 1 0", minHeight: 0, padding: "0 12px", display: "flex", flexDirection: "column" }}>
         <LogBox log={state.log} />
       </div>
 
       {/* Move buttons - 3x2 grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, padding: "2px 6px 4px 6px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, padding: "4px 12px 8px 12px" }}>
         {ENGINEER.moves.map((m, i) => {
           const usable = canAct && m.mp <= state.engMp;
           return (
@@ -72,7 +72,7 @@ export function BattleScreen({ onEnd }) {
               key={i}
               onClick={() => usable && dispatch({ type: "PLAYER_MOVE", move: m })}
               style={{
-                fontFamily: PIXEL_FONT, fontSize: 6, padding: "6px 4px",
+                fontFamily: PIXEL_FONT, fontSize: 8, padding: "10px 6px",
                 background: usable ? C.panel : "#0d1117",
                 border: `2px solid ${usable ? C.bright : C.border}`,
                 borderRadius: 4, cursor: usable ? "pointer" : "default",
@@ -85,8 +85,8 @@ export function BattleScreen({ onEnd }) {
               onMouseLeave={e => { e.currentTarget.style.background = usable ? C.panel : "#0d1117"; }}
             >
               <div>{m.emoji} {m.name}</div>
-              {m.mp > 0 && <div style={{ color: C.mpBlue, fontSize: 6 }}>({m.mp} MP)</div>}
-              <div style={{ fontSize: 5, color: C.muted, marginTop: 2 }}>{m.desc}</div>
+              {m.mp > 0 && <div style={{ color: C.mpBlue, fontSize: 8 }}>({m.mp} MP)</div>}
+              <div style={{ fontSize: 7, color: C.muted, marginTop: 2 }}>{m.desc}</div>
             </div>
           );
         })}
