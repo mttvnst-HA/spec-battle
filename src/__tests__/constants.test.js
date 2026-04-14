@@ -49,6 +49,18 @@ describe("Game Balance Constants (structural)", () => {
     expect(GAME.healRange[0]).toBeLessThanOrEqual(GAME.healRange[1]);
     expect(GAME.healRange[0]).toBeGreaterThanOrEqual(0);
   });
+
+  it("has counterMultiplier as a number in [1.0, 2.0]", () => {
+    expect(typeof GAME.counterMultiplier).toBe("number");
+    expect(GAME.counterMultiplier).toBeGreaterThanOrEqual(1.0);
+    expect(GAME.counterMultiplier).toBeLessThanOrEqual(2.0);
+  });
+
+  it("has aiCounterBias as a number in [0, 1]", () => {
+    expect(typeof GAME.aiCounterBias).toBe("number");
+    expect(GAME.aiCounterBias).toBeGreaterThanOrEqual(0);
+    expect(GAME.aiCounterBias).toBeLessThanOrEqual(1);
+  });
 });
 
 describe("STATUS Enum", () => {
