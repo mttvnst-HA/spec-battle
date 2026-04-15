@@ -207,4 +207,51 @@ describe("Reducer", () => {
       expect(next.log).toEqual([]);
     });
   });
+
+  describe("last-move tracking", () => {
+    it("initState has null last-move fields", () => {
+      const s = initState();
+      expect(s.engLastMove).toBe(null);
+      expect(s.conLastMove).toBe(null);
+    });
+
+    it("PLAYER_MOVE records engLastMove as the move name", () => {
+      const state = { ...initState(), turn: "player" };
+      const move = ENGINEER.moves[0]; // REJECT SUBMITTAL
+      const s = reducer(state, { type: "PLAYER_MOVE", move });
+      expect(s.engLastMove).toBe(move.name);
+    });
+
+    it("ENEMY_MOVE records conLastMove as the move name", () => {
+      const state = { ...initState(), turn: "enemy" };
+      const move = CONTRACTOR.moves[0]; // SUBMIT RFI
+      const s = reducer(state, { type: "ENEMY_MOVE", move });
+      expect(s.conLastMove).toBe(move.name);
+    });
+
+    it("RESET clears last-move fields", () => {
+      const seeded = { ...initState(), engLastMove: "INVOKE SHALL", conLastMove: "SUBMIT RFI" };
+      const s = reducer(seeded, { type: "RESET" });
+      expect(s.engLastMove).toBe(null);
+      expect(s.conLastMove).toBe(null);
+    });
+
+    it("PLAYER_STUNNED does NOT update engLastMove", () => {
+      const state = {
+        ...initState(), turn: "player", engStatus: STATUS.STUNNED,
+        engLastMove: "CITE UFC",
+      };
+      const s = reducer(state, { type: "PLAYER_STUNNED" });
+      expect(s.engLastMove).toBe("CITE UFC");
+    });
+
+    it("ENEMY_MOVE stun-skip branch does NOT update conLastMove", () => {
+      const state = {
+        ...initState(), turn: "enemy", conStatus: STATUS.STUNNED,
+        conLastMove: "CLAIM DSC",
+      };
+      const s = reducer(state, { type: "ENEMY_MOVE" });
+      expect(s.conLastMove).toBe("CLAIM DSC");
+    });
+  });
 });

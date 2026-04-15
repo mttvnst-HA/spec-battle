@@ -13,6 +13,7 @@ export const initState = () => ({
   turn: "intro", busy: false,
   engShake: 0, conShake: 0, engFlash: 0, conFlash: 0,
   winner: null,
+  engLastMove: null, conLastMove: null,
 });
 
 function checkWinner(s, isPlayer) {
@@ -48,6 +49,7 @@ export function reducer(state, action) {
       let s = resolveMove(state, ENGINEER, move, true, state.conLastMove);
       s.engMp = clamp(s.engMp + ENGINEER.mpRegen, 0, ENGINEER.maxMp);
       if (s.conStatus === STATUS.DEF_PLUS) s.conStatus = null;
+      s.engLastMove = move.name;
       const win = checkWinner(s, true);
       if (win) return win;
       return { ...s, turn: "enemy", busy: true };
@@ -64,6 +66,7 @@ export function reducer(state, action) {
       let s = resolveMove(state, CONTRACTOR, move, false, state.engLastMove);
       s.conMp = clamp(s.conMp + CONTRACTOR.mpRegen, 0, CONTRACTOR.maxMp);
       if (s.engStatus === STATUS.DEF_PLUS) s.engStatus = null;
+      s.conLastMove = move.name;
       const win = checkWinner(s, false);
       if (win) return win;
       return { ...s, turn: "player", busy: false };
