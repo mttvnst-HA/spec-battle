@@ -43,6 +43,7 @@ priorMove: null, line: "..." }, ...]. No preamble, no fences, JSON only.`;
 const transport = createCliTransport({
   model: process.env.TUNE_MODEL || "claude-sonnet-4-6",
   timeoutMs: Number(process.env.TUNE_TIMEOUT_MS || 180000),
+  executable: process.env.TUNE_CLAUDE_BIN ?? "claude",
 });
 
 const raw = transport.send(prompt);
