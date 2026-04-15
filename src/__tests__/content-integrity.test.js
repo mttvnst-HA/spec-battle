@@ -9,7 +9,10 @@ import gameOverData from "../../content/game-over.json";
 const VALID_EFFECTS = [null, "stun", "weaken", "slow", "defense", "heal"];
 const VALID_COLORS = ["yellow", "white", "orange", "red", "cyan", "bright", "muted", "hpGreen"];
 
-function validateMoves(moves, quotes, label) {
+function validateMoves(moves, quotes, opponentMoves, label) {
+  const opponentMoveNames = new Set(opponentMoves.map((m) => m.name));
+  const vsKeyFor = (n) => "vs_" + n.replace(/[ -]/g, "_");
+
   describe(`${label} moves`, () => {
     it("has at least 1 move", () => {
       expect(moves.length).toBeGreaterThan(0);
@@ -41,35 +44,78 @@ function validateMoves(moves, quotes, label) {
           expect(VALID_EFFECTS).toContain(move.effect);
         });
 
-        it("has matching quotes with at least 3 entries", () => {
-          const moveQuotes = quotes[move.name];
-          expect(moveQuotes).toBeDefined();
-          expect(moveQuotes.length).toBeGreaterThanOrEqual(3);
-        });
+        const raw = quotes[move.name];
+        const isObjectShape = raw && !Array.isArray(raw) && typeof raw === "object";
 
-        it("has no duplicate quotes", () => {
-          const moveQuotes = quotes[move.name];
-          if (moveQuotes) {
-            const unique = new Set(moveQuotes);
-            expect(unique.size).toBe(moveQuotes.length);
-          }
-        });
-
-        it("all quotes are non-empty strings", () => {
-          const moveQuotes = quotes[move.name] || [];
-          moveQuotes.forEach((q) => {
-            expect(q).toBeTypeOf("string");
-            expect(q.trim().length).toBeGreaterThan(0);
+        if (isObjectShape) {
+          it("has required `default` bucket with ≥2 lines", () => {
+            expect(Array.isArray(raw.default)).toBe(true);
+            expect(raw.default.length).toBeGreaterThanOrEqual(2);
           });
-        });
+
+          it("all populated vs_* buckets reference real opponent moves and have ≥2 lines", () => {
+            Object.entries(raw).forEach(([k, v]) => {
+              if (k === "default" || k === "opening") return;
+              expect(k).toMatch(/^vs_/);
+              const fromName = [...opponentMoveNames].find((n) => vsKeyFor(n) === k);
+              expect(fromName, `vs_* key '${k}' must match an opponent move`).toBeDefined();
+              expect(Array.isArray(v)).toBe(true);
+              expect(v.length).toBeGreaterThanOrEqual(2);
+            });
+          });
+
+          it("opening bucket (if present) has ≥2 lines", () => {
+            if (raw.opening !== undefined) {
+              expect(Array.isArray(raw.opening)).toBe(true);
+              expect(raw.opening.length).toBeGreaterThanOrEqual(2);
+            }
+          });
+
+          it("no duplicate lines within a bucket", () => {
+            Object.values(raw).forEach((bucket) => {
+              if (!Array.isArray(bucket)) return;
+              expect(new Set(bucket).size).toBe(bucket.length);
+            });
+          });
+
+          it("all quote lines are non-empty strings", () => {
+            Object.values(raw).forEach((bucket) => {
+              if (!Array.isArray(bucket)) return;
+              bucket.forEach((q) => {
+                expect(q).toBeTypeOf("string");
+                expect(q.trim().length).toBeGreaterThan(0);
+              });
+            });
+          });
+        } else {
+          // Legacy flat-array shape — preserve existing rules
+          it("has matching quotes with at least 3 entries", () => {
+            expect(raw).toBeDefined();
+            expect(raw.length).toBeGreaterThanOrEqual(3);
+          });
+
+          it("has no duplicate quotes", () => {
+            if (raw) {
+              const unique = new Set(raw);
+              expect(unique.size).toBe(raw.length);
+            }
+          });
+
+          it("all quotes are non-empty strings", () => {
+            (raw || []).forEach((q) => {
+              expect(q).toBeTypeOf("string");
+              expect(q.trim().length).toBeGreaterThan(0);
+            });
+          });
+        }
       });
     });
   });
 }
 
 describe("Content Integrity", () => {
-  validateMoves(engineerMoves, engineerQuotes, "Engineer");
-  validateMoves(contractorMoves, contractorQuotes, "Contractor");
+  validateMoves(engineerMoves, engineerQuotes, contractorMoves, "Engineer");
+  validateMoves(contractorMoves, contractorQuotes, engineerMoves, "Contractor");
 
   describe("Intro sequences", () => {
     it("has at least 1 intro", () => {
