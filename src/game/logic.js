@@ -1,6 +1,7 @@
 import { C, STATUS, GAME, clamp } from "../constants.js";
 import { random, rand, pick } from "./rng.js";
 import { CONTRACTOR } from "../data/characters.js";
+import { pickDialog } from "./dialog.js";
 
 export function calculateDamage(move, defenderStatus) {
   let dmg = rand(move.dmg[0], move.dmg[1]);
@@ -18,9 +19,11 @@ export function rollStatusEffect(move) {
   return null;
 }
 
-export function resolveMove(state, attacker, move, isPlayer) {
+export function resolveMove(state, attacker, move, isPlayer, opponentLastMove = null) {
   let s = { ...state };
-  const quote = pick(move.quotes);
+  const isOpening = isPlayer ? state.engLastMove == null : state.conLastMove == null;
+  const attackerSide = isPlayer ? "engineer" : "contractor";
+  const quote = pickDialog({ attackerSide, move, opponentLastMove, isOpening });
   let newLog = [
     { text: `${attacker.name} uses ${move.emoji} ${move.name}!`, color: C.bright },
     { text: `  "${quote}"`, color: C.white },

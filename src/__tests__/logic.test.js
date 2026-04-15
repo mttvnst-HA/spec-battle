@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { calculateDamage, rollStatusEffect, resolveMove, pickAIMove } from "../game/logic.js";
 import { STATUS, GAME } from "../constants.js";
 import { ENGINEER, CONTRACTOR } from "../data/characters.js";
+import { seed as seedRng } from "../game/rng.js";
 
 describe("calculateDamage", () => {
   const move = { dmg: [20, 20], mp: 0, effect: null }; // fixed damage for predictability
@@ -143,5 +144,28 @@ describe("pickAIMove", () => {
     const state = { conHp: 100, conMp: 0, conStatus: null, engHp: 100 };
     const move = pickAIMove(state);
     expect(move.name).toBe("SUBMIT RFI");
+  });
+});
+
+describe("resolveMove dialog routing", () => {
+  it("pulls quote from vs_<opponent> bucket when opponentLastMove is set", () => {
+    seedRng(7);
+    const move = {
+      name: "REJECT SUBMITTAL", emoji: "🚫", desc: "", dmg: [10, 10], mp: 0, effect: null,
+      quotes: {
+        default: ["default quote"],
+        vs_SUBMIT_RFI: ["vs-rfi quote a", "vs-rfi quote b"],
+      },
+    };
+    const attacker = { name: "ENGINEER", maxHp: 140, maxMp: 70, mpRegen: 4 };
+    const state = {
+      engHp: 140, engMp: 70, conHp: 150, conMp: 60,
+      engStatus: null, conStatus: null, log: [],
+      engShake: 0, conShake: 0, engFlash: 0, conFlash: 0,
+      engLastMove: "CITE UFC", conLastMove: "SUBMIT RFI",
+    };
+    const s = resolveMove(state, attacker, move, true, "SUBMIT RFI");
+    const quoteLine = s.log.find((e) => e.text.startsWith("  \""));
+    expect(quoteLine.text).toMatch(/vs-rfi quote [ab]/);
   });
 });

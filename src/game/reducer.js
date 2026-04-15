@@ -45,7 +45,7 @@ export function reducer(state, action) {
       if (move.mp > state.engMp) {
         return { ...state, log: [...state.log, { text: "Not enough MP!", color: C.red }] };
       }
-      let s = resolveMove(state, ENGINEER, move, true);
+      let s = resolveMove(state, ENGINEER, move, true, state.conLastMove);
       s.engMp = clamp(s.engMp + ENGINEER.mpRegen, 0, ENGINEER.maxMp);
       if (s.conStatus === STATUS.DEF_PLUS) s.conStatus = null;
       const win = checkWinner(s, true);
@@ -61,7 +61,7 @@ export function reducer(state, action) {
         };
       }
       const move = action.move || pickAIMove(state);
-      let s = resolveMove(state, CONTRACTOR, move, false);
+      let s = resolveMove(state, CONTRACTOR, move, false, state.engLastMove);
       s.conMp = clamp(s.conMp + CONTRACTOR.mpRegen, 0, CONTRACTOR.maxMp);
       if (s.engStatus === STATUS.DEF_PLUS) s.engStatus = null;
       const win = checkWinner(s, false);
