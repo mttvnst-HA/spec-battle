@@ -51,3 +51,9 @@ warning: in the working copy of 'content/game.json', LF will be replaced by CRLF
 warning: in the working copy of 'content/moves/contractor.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'content/moves/engineer.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'tune-run.log', LF will be replaced by CRLF the next time Git touches it
+[tune] iter 11: Nerf eng free move and buff con free move — both used most every matchup
+warning: in the working copy of 'content/game.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'content/moves/contractor.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'content/moves/engineer.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tune-run.log', LF will be replaced by CRLF the next time Git touches it
+[tune] iter 12: Nerf eng mid-cost stun; buff con mid-tier dmg move (high random freq)
