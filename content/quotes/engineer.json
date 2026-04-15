@@ -14,6 +14,41 @@
     "vs_SUBMIT_RFI": [
       "Your 'clarification' RFI is a pre-approval attempt for non-conforming work. Disapproved.",
       "RFIs don't launder bad submittals. Code E."
+    ],
+    "vs_VALUE_ENGINEER": [
+      "File it under 52.248-3. Don't smuggle it in with the shop drawings.",
+      "That's not Product Data. That's a VECP in a trench coat.",
+      "The 55/45 split doesn't save a non-conforming bundle. Returned.",
+      "The VECP channel is one door over. This is still Code C.",
+      "I'll evaluate the VECP when it shows up as a VECP, not a shop drawing."
+    ],
+    "vs_CLAIM_DSC": [
+      "Type I, Type II, Type-doesn't-matter — the submittal's still Code C.",
+      "The boring logs don't fix your Q-list. Revise.",
+      "Weathered siltstone is fascinating. Your SD-03 bundle is not. Returned.",
+      "The rock didn't make you forget the salient characteristics. You did.",
+      "DSC preserves the condition. I'm preserving the rejection."
+    ],
+    "vs_SCHEDULE_DELAY": [
+      "You're on day 31 of a 20-day review because this is your third try.",
+      "The critical path runs through your resubmittals, not my red pen.",
+      "20 calendar days under 01 33 00 starts when the submittal conforms. It doesn't. Returned.",
+      "Your TIA blames my clock. My clock starts over when you fix this.",
+      "The float belongs to whoever submits correctly the first time. That's not you."
+    ],
+    "vs_OR_EQUAL_GAMBIT": [
+      "Four of seven salient characteristics. Three short. Code C.",
+      "Not equal. Not conforming. Not approved.",
+      "'Meets or exceeds' — actually, it meets four. Returned.",
+      "Your matrix has three blank rows. That's not an 'or equal,' that's a hope.",
+      "Under 01 60 00 the burden of proof is yours. You brought hearsay."
+    ],
+    "vs_RESERVE_RIGHTS": [
+      "Reserve your rights. Reserve a table. The submittal's still Code C.",
+      "Your without-prejudice paragraph is longer than your product data.",
+      "Rights reserved. Submittal rejected. Two separate clocks.",
+      "I'll see you at the Board. Bring a conforming cover sheet.",
+      "Reservation noted — next to the fourteen deficiencies. In red."
     ]
   },
   "RED-LINE SPEC": {
@@ -30,6 +65,41 @@
     "vs_OR_EQUAL_GAMBIT": [
       "I red-lined every page of your 'or-equal' submission. The cut sheet alone is wrong on 12 points.",
       "Section 01 60 00 requires salient characteristics. Your proposed equal fails on thermal performance alone. Red-lined."
+    ],
+    "vs_CLAIM_DSC": [
+      "Your DSC notice is about dirt. My red-line is about the spec.",
+      "The ground changed. The red-line didn't.",
+      "Type I, Type II, Type-doesn't-matter. The markup stands.",
+      "Red-line the geotech report if you want. Mine governs this sheet.",
+      "The spec was red-lined before you hit rock. The rock doesn't amend paper."
+    ],
+    "vs_SCHEDULE_DELAY": [
+      "Your TIA's on my desk. My red-line's on yours. Mine got there first.",
+      "Your critical path ran through paragraph 3.2.1. I just red-lined 3.2.1. Rebaseline.",
+      "I'll credit the 27 days when you incorporate the markup. Verbatim.",
+      "Schedule narrative has seven 'as necessary.' §2-4.4 prohibits it. I struck all seven.",
+      "Float's yours until the red comes out. Count the marks — that's how many days you lose."
+    ],
+    "vs_VALUE_ENGINEER": [
+      "The red-line narrowed the performance floor. Your VECP sits under it.",
+      "Six salient characteristics in red. Your VE meets four. Dead on arrival.",
+      "The 55/45 split assumes the baseline. The red-line replaced the baseline.",
+      "Red-line your own VECP. Then we talk.",
+      "Your VECP meets the old spec. I already red-lined the new one."
+    ],
+    "vs_SUBMIT_RFI": [
+      "I red-lined the answer before you drafted the RFI. Read the margin.",
+      "Your RFI asks what §3.2 means. Sheet three. Circled. In red.",
+      "The markup pre-empted the question. You filed it anyway.",
+      "You paid a thousand bucks in soft costs to ask what the red pen said.",
+      "Read the red-lines, then the drawings, then your RFI. Usually in that order."
+    ],
+    "vs_RESERVE_RIGHTS": [
+      "Your reservation is noted. In the margin. Next to my red-line.",
+      "Reserve whatever rights you want. The markup still governs.",
+      "I red-lined 'without prejudice.' Incorporate it without prejudice to my pen.",
+      "'All rights reserved' at the bottom. Red ink on top. Gravity wins.",
+      "You reserved rights. I reserved the page for revisions. Mine's binding."
     ]
   },
   "INVOKE SHALL": {
@@ -50,6 +120,34 @@
       "Per boring log B-4 referenced in Section 31 23 00, the contractor SHALL have anticipated these conditions. No Type I DSC.",
       "The contract SHALL-language defined what was foreseeable. Your DSC claim ignores the documents.",
       "SHALL means the contractor bore the subsurface risk at time of bid. Claim denied."
+    ],
+    "vs_VALUE_ENGINEER": [
+      "VECP proposes 'may' where the spec says shall. Declined under 52.248-3.",
+      "Your VE converts shall to should. That's not value, that's scope reduction. 100% Government.",
+      "55/45 split of zero savings. The shall stays.",
+      "You value-engineered the verb. Verbs aren't optional. SHALL.",
+      "Function preserved, cost reduced, obligation deleted. Two out of three doesn't clear 52.248-3."
+    ],
+    "vs_SUBMIT_RFI": [
+      "RFI 247 asks what 'shall' means. Mandatory. Close the RFI.",
+      "You RFI'd the verb. Shall means shall. Fifty years of case law saved me the typing.",
+      "Open RFIs: 38. Shall-clauses in the spec: 3,000. Do the math.",
+      "RFI response, one word: SHALL. If you need clarification, read the response again.",
+      "Shall today. Shall tomorrow. Shall on the day the Board rules."
+    ],
+    "vs_SCHEDULE_DELAY": [
+      "Your TIA doesn't conjugate verbs. SHALL finish by the completion date.",
+      "The critical path runs through the word SHALL. Walk it.",
+      "I'll extend the schedule when the contract grows a 'maybe.'",
+      "Concurrent delay is cute. Shall means shall.",
+      "You wrote 27 days of TIA. I wrote one word. Mine wins."
+    ],
+    "vs_RESERVE_RIGHTS": [
+      "Reserve all you want. SHALL still sets the verb tense.",
+      "Protest noted. SHALL is not a question.",
+      "Your reservation is filed. My SHALL is binding. Guess which one pours concrete.",
+      "Cite 52.233-1 at the Board. Cite SHALL to your superintendent.",
+      "Footer your letter however you like. The paragraph still starts with SHALL."
     ]
   },
   "ISSUE NCR": {
@@ -67,6 +165,41 @@
       "Your VECP proposes a cheaper version of work we've just NCR'd. The underlying installation is non-conforming. VECP rejected, NCR stands.",
       "Value engineering cannot relieve you from complying with the existing contract. And your current work doesn't. NCR filed.",
       "No VECP on non-conforming work. You don't get to renegotiate your way out of the NCR."
+    ],
+    "vs_SCHEDULE_DELAY": [
+      "Your TIA doesn't fix the rebar cover. NCR-041 stands.",
+      "Rework isn't an excusable delay. It's just rework.",
+      "The critical path runs through the wall you poured wrong. Cute coincidence.",
+      "Float doesn't close NCRs. Concrete does.",
+      "You want more days? Fix the NCR first, then we'll talk calendar."
+    ],
+    "vs_OR_EQUAL_GAMBIT": [
+      "You installed the 'or equal' before I approved the 'or equal.' That's two findings.",
+      "Your substitute misses three salient characteristics. It's also already on the wall.",
+      "NCR-052: unapproved substitution. Rip it out.",
+      "The spec named a manufacturer. You installed someone else. Rip and replace.",
+      "Submittal 117 is still open. The product is already installed. Explain."
+    ],
+    "vs_RESERVE_RIGHTS": [
+      "Reserve whatever you want. The corrective-action clock started Tuesday.",
+      "Your reservation doesn't un-pour the concrete.",
+      "Preserve rights, preserve the record, preserve the evidence. And fix the work.",
+      "Reserving rights under 52.233-1 is cute. The NCR is under 52.246-12.",
+      "Fourteen days to submit CAPA. Reserve rights in the cover letter."
+    ],
+    "vs_CLAIM_DSC": [
+      "Type I, Type II, Type-doesn't-matter. Cover is still 3/8 short of ACI 318.",
+      "The DSC is at the CO's desk. The NCR is at yours. Start with yours.",
+      "The siltstone didn't place the rebar. You did. Rip it out.",
+      "Bring me a signed modification or bring me a jackhammer.",
+      "Unexpected rock is a story. NCR-041 is a fact."
+    ],
+    "vs_SUBMIT_RFI": [
+      "You RFI'd the question. I NCR'd the answer you poured last Tuesday.",
+      "The RFI asks what the spec means. The NCR documents what you built anyway.",
+      "Interesting RFI. Interesting wall. They don't match.",
+      "RFI 247 doesn't close NCR-038. Different clocks, different signatures.",
+      "You can't RFI work you already finished wrong."
     ]
   },
   "CITE UFC": {
@@ -82,6 +215,41 @@
       "Your RFI is answered by UFC 3-600-01, paragraph 2-3.1. The requirement is mandatory, not ambiguous.",
       "The answer to your RFI has been in the UFC since 2016. Read it.",
       "UFC resolves your RFI. There is no design intent to clarify — the criteria are explicit."
+    ],
+    "vs_CLAIM_DSC": [
+      "UFC 3-220-01 contemplates this soil. Not differing. Not compensable.",
+      "Type I, Type II, Type-doesn't-matter — UFC 3-220-01 §4 governs.",
+      "Your GBR is inside the UFC envelope. The condition is ordinary.",
+      "UFC 3-220-01 named weathered siltstone in paragraph 4-3.1. You're not a geologist.",
+      "The UFC set the baseline. The baseline set your bid. Your bid set your risk."
+    ],
+    "vs_VALUE_ENGINEER": [
+      "UFC 3-401-01 sets the performance class. Your VECP undercuts it by one.",
+      "The 55/45 split only works if there's a ceiling. The UFC is the ceiling.",
+      "'Function preserved' — preserved against what? The UFC says not this.",
+      "I'll sign your VECP when UFC 1-200-01 signs off. It doesn't hold a pen.",
+      "Life-cycle savings, preserved function, UFC compliance — pick two."
+    ],
+    "vs_SCHEDULE_DELAY": [
+      "UFC 1-300-09N built the review window into your CPM. Read your own schedule.",
+      "Your TIA argues with the criteria. The criteria don't negotiate.",
+      "Compensable delay? UFC 1-300-09N already allotted the review duration.",
+      "The critical path runs through a UFC review. The UFC owns the path.",
+      "I'll grant the time extension when UFC 3-600-01 grants me one. It won't."
+    ],
+    "vs_OR_EQUAL_GAMBIT": [
+      "UFC 3-401-01 specifies the performance class. Your equal is the class below.",
+      "You matched seven salient characteristics. UFC 3-600-01 is the eighth.",
+      "'Equal' means equal to the UFC floor. You're standing below it.",
+      "Your rep confirmed it meets spec. The UFC confirms it doesn't.",
+      "The salient characteristics come from UFC 3-401-01. Rejected on characteristic one."
+    ],
+    "vs_RESERVE_RIGHTS": [
+      "Reserve rights against UFC 1-300-09N. The Board has a form response ready.",
+      "Your reservation is noted. The criteria govern anyway.",
+      "'Without prejudice' doesn't de-incorporate the UFC. It was in the RFP.",
+      "Reserve every right you have. UFC 4-010-01 still applies to the standoff.",
+      "File the REA. UFC 3-600-01 will be right where you left it."
     ]
   },
   "CURE NOTICE": {
@@ -96,6 +264,41 @@
     "vs_SCHEDULE_DELAY": [
       "Your schedule narrative attributes delays to weather, RFIs, and tides. Our analysis shows the delays are contractor-caused. Cure notice issued.",
       "Concurrent delay doctrine doesn't save you when the critical-path driver is your own late submittals. 10 days."
+    ],
+    "vs_RESERVE_RIGHTS": [
+      "Reserve all you want. The ten-day clock under 52.249-10 doesn't pause for footnotes.",
+      "Your 'without prejudice' is noted. My signature block says Contracting Officer.",
+      "Preserve your rights in writing. Cure the default in person.",
+      "Day one of ten. File whatever you want on day eleven.",
+      "Rights reserved, default unchanged. Read the signature, not the footer."
+    ],
+    "vs_SUBMIT_RFI": [
+      "RFI 248 is cute. This letter isn't from me — read the signature block.",
+      "You asked for clarification. Here's ten days of it.",
+      "File RFI 249 on day eleven. From the Show Cause window.",
+      "Forty-seven open RFIs from you this month. One Cure Notice from the CO. Guess whose clock runs faster.",
+      "The RFI doesn't toll the cure period. Nothing does."
+    ],
+    "vs_CLAIM_DSC": [
+      "Type I, Type II, Type-doesn't-matter. The Cure Notice is about the forty-seven open NCRs.",
+      "Differing site conditions buy you time. Not a QC program.",
+      "You found rock. I found ninety days of missed inspections.",
+      "Bring the geotechnical expert. Bring him to the Show Cause on day eleven.",
+      "The soil is differing. Your performance is consistent."
+    ],
+    "vs_VALUE_ENGINEER": [
+      "You want a 55/45 split. I'm offering a 100/0 termination.",
+      "The VECP is on my desk. The Cure Notice is on yours.",
+      "Value engineer the actual scope. You haven't built any of it yet.",
+      "You can't share savings on a terminated contract.",
+      "Nice VECP. I'll file it with the Show Cause."
+    ],
+    "vs_OR_EQUAL_GAMBIT": [
+      "'Or equal' isn't a cure. Performing the contract is.",
+      "You substituted the product. Now substitute a performing contractor.",
+      "The spec named Class A. You submitted Class B. I named you.",
+      "Your 'or equal' was unavailable. So is your extension.",
+      "You delivered something else. The clause calls that failing to deliver."
     ]
   }
 }
