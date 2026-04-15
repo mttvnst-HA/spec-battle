@@ -16,9 +16,9 @@ export function TitleScreen({ onStart }) {
         SPEC<br/>BATTLE
       </div>
       <div style={{ display: "flex", gap: 36, alignItems: "flex-end", margin: "8px 0" }}>
-        <PixelSprite data={ENGINEER_PIXELS} size={7} shake={0} flash={0} />
+        <PixelSprite data={ENGINEER_PIXELS} size={5} shake={0} flash={0} />
         <div style={{ fontSize: 20, color: C.yellow, fontFamily: PIXEL_FONT, marginBottom: 10 }}>VS</div>
-        <PixelSprite data={CONTRACTOR_PIXELS} size={7} shake={0} flash={0} />
+        <PixelSprite data={CONTRACTOR_PIXELS} size={5} shake={0} flash={0} />
       </div>
       <div style={{ fontSize: 9, color: C.cyan, letterSpacing: 1 }}>ENGINEER vs CONTRACTOR</div>
       <div style={{ fontSize: 8, color: C.muted, maxWidth: 440, lineHeight: 1.8, padding: "0 20px" }}>

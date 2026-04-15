@@ -36,7 +36,7 @@ export function reducer(state, action) {
       if (state.turn !== "player" || state.engStatus !== STATUS.STUNNED) return state;
       return {
         ...state, engStatus: null, turn: "enemy", busy: true,
-        log: [...state.log, { text: "ENGINEER is stunned! Turn skipped!", color: C.yellow }],
+        log: [...state.log, { text: "ENGINEER is stunned! Turn skipped!", color: C.yellow, gap: true, side: "engineer" }],
       };
     }
     case "PLAYER_MOVE": {
@@ -59,7 +59,7 @@ export function reducer(state, action) {
       if (state.conStatus === STATUS.STUNNED) {
         return {
           ...state, conStatus: null, turn: "player", busy: false,
-          log: [...state.log, { text: "CONTRACTOR is stunned! Turn skipped!", color: C.yellow }],
+          log: [...state.log, { text: "CONTRACTOR is stunned! Turn skipped!", color: C.yellow, gap: true, side: "contractor" }],
         };
       }
       const move = action.move || pickAIMove(state);

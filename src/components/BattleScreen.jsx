@@ -57,22 +57,22 @@ export function BattleScreen({ onEnd }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: 6, padding: "8px 0" }}>
       {/* Battlefield */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "8px 16px", gap: 8 }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "4px 16px", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
           <StatBox char={ENGINEER} hp={state.engHp} mp={state.engMp} status={state.engStatus} />
-          <PixelSprite data={ENGINEER_PIXELS} size={6} shake={state.engShake} flash={state.engFlash} />
+          <PixelSprite data={ENGINEER_PIXELS} size={3.5} shake={state.engShake} flash={state.engFlash} />
         </div>
-        <div style={{ fontFamily: PIXEL_FONT, fontSize: 14, color: C.yellow, animation: "rpg-pulse 2s ease-in-out infinite", paddingTop: 40 }}>VS</div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+        <div style={{ fontFamily: PIXEL_FONT, fontSize: 12, color: C.yellow, animation: "rpg-pulse 2s ease-in-out infinite", paddingTop: 30 }}>VS</div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
           <StatBox char={CONTRACTOR} hp={state.conHp} mp={state.conMp} status={state.conStatus} />
-          <PixelSprite data={CONTRACTOR_PIXELS} size={6} shake={state.conShake} flash={state.conFlash} flipX />
+          <PixelSprite data={CONTRACTOR_PIXELS} size={3.5} shake={state.conShake} flash={state.conFlash} flipX />
         </div>
       </div>
 
       {/* Turn indicator */}
       <div style={{
         fontFamily: PIXEL_FONT, fontSize: 9, textAlign: "center",
-        color: state.turn === "player" ? C.bright : C.orange, letterSpacing: 1, padding: "4px 0",
+        color: state.turn === "player" ? C.bright : C.orange, letterSpacing: 1, padding: "2px 0",
       }}>
         {state.winner ? "" : state.turn === "intro" ? "" : isStunned ? "!! STUNNED !!" : state.turn === "player" ? ">> YOUR TURN <<" : "... CONTRACTOR is reviewing the contract ..."}
       </div>
@@ -83,7 +83,7 @@ export function BattleScreen({ onEnd }) {
       </div>
 
       {/* Move buttons - 3x2 grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, padding: "4px 12px 8px 12px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, padding: "2px 12px 4px 12px" }}>
         {ENGINEER.moves.map((m, i) => {
           const usable = canAct && m.mp <= state.engMp;
           return (
@@ -91,7 +91,7 @@ export function BattleScreen({ onEnd }) {
               key={i}
               onClick={() => usable && dispatch({ type: "PLAYER_MOVE", move: m })}
               style={{
-                fontFamily: PIXEL_FONT, fontSize: 8, padding: "10px 6px",
+                fontFamily: PIXEL_FONT, fontSize: 7, padding: "6px 4px",
                 background: usable ? C.panel : "#0d1117",
                 border: `2px solid ${usable ? C.bright : C.border}`,
                 borderRadius: 4, cursor: usable ? "pointer" : "default",
@@ -104,8 +104,8 @@ export function BattleScreen({ onEnd }) {
               onMouseLeave={e => { e.currentTarget.style.background = usable ? C.panel : "#0d1117"; }}
             >
               <div>{m.emoji} {m.name}</div>
-              {m.mp > 0 && <div style={{ color: C.mpBlue, fontSize: 8 }}>({m.mp} MP)</div>}
-              <div style={{ fontSize: 7, color: C.muted, marginTop: 2 }}>{m.desc}</div>
+              {m.mp > 0 && <div style={{ color: C.mpBlue, fontSize: 7 }}>({m.mp} MP)</div>}
+              <div style={{ fontSize: 6, color: C.muted, marginTop: 1 }}>{m.desc}</div>
             </div>
           );
         })}
