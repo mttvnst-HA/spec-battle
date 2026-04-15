@@ -177,7 +177,7 @@ npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 | `tune-proposer` | 6-rule round-robin heuristic library; shape + step-size invariants (relaxed in Phase 2.2a) |
 | `tune-gitOps` | Commit-wrapper escaping (shell metacharacters); injectable exec |
 | `tune-loop` | Orchestrator: convergence, budget, kill-switch, improvement gating, bounded retry, write-failed/invalid-output outcomes, worstDistanceCandidate capture, transport-error surfacing |
-| `tune-claudeTransport` | createCliTransport fake-exec: success, nonzero exit, timeout, input validation |
+| `tune-claudeTransport` | createCliTransport fake-exec: success, nonzero exit, timeout, input validation, ETIMEDOUT bounded retry (success, double-timeout w/ suffix, retry-then-non-timeout unchanged) |
 | `tune-llmProposer-prompt` | buildPrompt shape: static prefix, content embedding, history with deltas, retry context, candidate-distance in history |
 | `tune-llmProposer-parse` | parseBundle ladder (envelope/fences/brace-extract) + schema + step-size violations |
 | `tune-llmProposer-propose` | createLlmProposer glue with fake transport: happy path, parse passthrough, null on transport throw, lastError getter behavior |

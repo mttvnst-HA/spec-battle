@@ -106,4 +106,36 @@ describe("createCliTransport", () => {
     expect(() => t.send("prompt")).toThrow(/Command failed/);
     expect(exec).toHaveBeenCalledTimes(1);
   });
+
+  it("propagates a non-ETIMEDOUT error from the retry call unchanged (no suffix)", () => {
+    // Case (e): first call times out, retry fires, retry fails for a
+    // different reason (e.g., prompt/schema error). The "(after 1 retry)"
+    // suffix is only meaningful when the retry itself timed out — applying
+    // it to a different failure mode misleads the tuning-summary "Last
+    // transport error" reader into thinking repeated timeouts occurred.
+    // Also preserves .stderr/.stdout that spawnSync errors carry.
+    let callCount = 0;
+    const exec = vi.fn(() => {
+      callCount += 1;
+      if (callCount === 1) {
+        const e = new Error("spawnSync claude.exe ETIMEDOUT");
+        e.code = "ETIMEDOUT";
+        e.signal = "SIGTERM";
+        throw e;
+      }
+      const e = new Error("Command failed");
+      e.status = 1;
+      e.stderr = "bad prompt payload";
+      throw e;
+    });
+    const t = createCliTransport({ exec });
+    let caught;
+    try { t.send("prompt"); } catch (err) { caught = err; }
+    expect(caught).toBeDefined();
+    expect(caught.message).toBe("Command failed");
+    expect(caught.message).not.toMatch(/after 1 retry/);
+    expect(caught.status).toBe(1);
+    expect(caught.stderr).toBe("bad prompt payload");
+    expect(exec).toHaveBeenCalledTimes(2);
+  });
 });

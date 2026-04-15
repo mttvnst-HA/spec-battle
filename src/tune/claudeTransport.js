@@ -61,13 +61,23 @@ export function createCliTransport({
         try {
           return exec(opts);
         } catch (err2) {
-          // Annotate the second-timeout message so
-          // tuning-summary.md's "Last transport error" section shows the
-          // retry actually happened. Preserve .code and .signal so any
-          // downstream caller can still detect the timeout.
+          // Only annotate when the retry ALSO timed out — the
+          // "(after 1 retry)" suffix is a timeout-retry signal and
+          // misleads readers if pasted onto a different failure mode.
+          // When the retry fails for a different reason (schema error,
+          // nonzero exit), propagate that error unchanged so its
+          // .stderr / .stdout / .status naturally flow through.
+          if (!err2 || err2.code !== "ETIMEDOUT") throw err2;
+          // Annotate the second-timeout message so tuning-summary.md's
+          // "Last transport error" section shows the retry actually
+          // happened. Preserve .code/.signal so downstream callers can
+          // still detect the timeout, and copy .stderr/.stdout
+          // defensively in case future diagnostic logging wants them.
           const annotated = new Error(`${err2.message} (after 1 retry)`);
           annotated.code = err2.code;
           annotated.signal = err2.signal;
+          if (err2.stderr !== undefined) annotated.stderr = err2.stderr;
+          if (err2.stdout !== undefined) annotated.stdout = err2.stdout;
           throw annotated;
         }
       }
