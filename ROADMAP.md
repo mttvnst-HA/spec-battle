@@ -281,6 +281,63 @@ None.
 - The CLI's `exhausted` behavior after ~8 calls — rate limit, quota, session timeout, or transient? AC4 will make this visible in summary output. If it's a per-minute rate limit, a fixed inter-iteration delay may suffice.
 - Does `balance-regression.test.js`'s ±0.5pp tolerance need tightening once the baseline is regenerated at 1000 games? (Tighter sim should reduce drift; tolerance could naturally shrink.)
 
+### Phase 2.2d — Multi-seed averaged sim
+
+**Goal:** Close the remaining signal-to-noise gap revealed by the Phase 2.2c AC5 production runs. Average `runBatch` across K=3 disjoint-seed chunks in the tuning path so per-iteration stderr on per-matchup winrate drops from ~1.58pp to ~0.91pp — below the smallest-step signal. Measurement fix; no proposer-logic, step-size, or `isImprovement` changes.
+
+**Depends on:** Phase 2.2c shipped (PR #6 merged) + the LLM proposer counter-key fix (PR #9 merged).
+
+#### Observed Phase 2.2c AC5 ceiling (2026-04-15 production runs, 2 runs × 3-6 iterations)
+
+Two fresh LLM tune runs from clean master on PR-#9-synced code: 9 LLM-proposed bundles total, 0 accepted. Every `not-improvement` bundle landed at `worstDistanceCandidate = 38.40` — the exact baseline worstDistance, to 2 decimal places. Not a single bundle budged the objective. Bundles were strategically diverse (dmg, stun, heal, crit/weaken multipliers, aiCounterBias-adjacent mutations). Both runs exited `exhausted` on `spawnSync claude.exe ETIMEDOUT` at iter 7 and iter 4 respectively.
+
+Root-cause analysis: binomial stderr on per-matchup engineerWinRate at n=1000, p near mid-range, is ~1.58pp. Step-size bounds produce effects in the 0.5–2pp range on per-matchup winrate — smack inside the noise band. With `isImprovement`'s strict-inequality gate (`worst(curr) < worst(prev)`), a correctly-directed bundle registers as "improvement" ~50% of the time by noise alone, and the 9-run sample shows the sim sitting in a stable attractor at worstDistance = 38.40 that single-iteration perturbations can't dislodge. **The proposer is sophisticated; the measurement is noisy.** Averaging K independent sim chunks attacks this directly — stderr drops by √K.
+
+#### Acceptance criteria
+
+1. New helper `src/sim/runAveragedBatch.js` runs K independent `runBatch` chunks with disjoint seed ranges (`startSeed + k*count`) and returns a single BalanceReport with `engineerWinRate`, `avgTurns`, and `moveFrequency` averaged across chunks. Passthrough at K=1. Deterministic. Unit-tested.
+2. `scripts/tune.js` `runSim()` calls `runAveragedBatch` with `K=3, count=1000` per chunk (3000 games aggregate per matchup per iteration). `scripts/simulate.js` and `balance-baseline.json` stay single-seed — averaging is tune-only.
+3. `balance-regression.test.js` stays green — it uses `runBatch` directly with `baselineMatchup.count` and is not touched.
+4. All 453+ existing tests stay green; ≥6 new tests for `runAveragedBatch` (determinism, passthrough, averaging math, `moveFrequency` union, aggregate count, error on K<1).
+5. `npm run tune:dry-run` continues to run cleanly end-to-end.
+6. A fresh `npm run tune:llm` from clean master produces ≥1 accepted bundle AND exits cleanly (`converged`, `budget-iters`, or `budget-wall` — not `exhausted`). **OR**, if `exhausted` recurs despite multi-seed averaging, `tuning-summary.md` shows `worstDistanceCandidate` values diverging from the flat 38.40 pattern (evidence that noise is no longer the binding constraint), and the ETIMEDOUT is scoped as Phase 2.2e.
+
+#### Locked decisions
+
+- **K = 3.** Drops stderr by √3 ≈ 1.73×. K=5 (√5 ≈ 2.24×) is parked — try K=3 first.
+- **Seed offsets:** `startSeed + k * count`. With defaults, chunks cover seeds [1..1000], [1001..2000], [2001..3000]. No overlap.
+- **`isImprovement` unchanged.** Strict-inequality gate stays. The fix is measurement, not the gate.
+- **Step-size bounds unchanged.** Widening parked.
+- **Baseline stays single-seed.** `balance-baseline.json` is the human-readable contract; averaging only tightens the signal the LLM proposer sees during tuning. Regenerating the baseline as K=3 is parked.
+- **Budget unchanged.** 30 iters / 45 min. Per-iter sim cost is 3× but 2.2c evidence shows CLI call time dominates iter wall-clock, so aggregate wall-clock increase is modest. Revisit if the first 2.2d run hits `budget-wall` before `budget-iters`.
+- **Averaging happens in the sim layer, not the loop.** `runAveragedBatch` returns a normal BalanceReport; `loop.js`, `convergence.js`, `llmProposer.js` are unchanged.
+
+#### Components to build / modify
+
+- Create: `src/sim/runAveragedBatch.js` — pure helper composing K `runBatch` calls.
+- Create: `src/__tests__/sim-runAveragedBatch.test.js`.
+- Modify: `scripts/tune.js` — `runSim()` uses the new helper with K=3.
+- Modify: `CLAUDE.md` — Tuning harness subsection notes the tune-only K=3 averaging.
+
+#### Dependencies added
+
+None.
+
+#### Out of scope for Phase 2.2d
+
+- Phase 3 (Bayesian optimization).
+- Phase 4 (LLM-as-player).
+- `isImprovement` changes.
+- Step-size widening.
+- Transport-layer timeout / retry changes (parked for Phase 2.2e).
+- Regenerating `balance-baseline.json` at K=3.
+
+#### Open questions (parked)
+
+- If K=3 is insufficient and runs still hit `worstDistanceCandidate ≈ 38.40`, is the next move K=5 or widening step sizes? (Decide after data.)
+- If `exhausted` / ETIMEDOUT recurs, is Phase 2.2e a transport-timeout bump + retry, or a deeper investigation into CLI hang causes? (Decide after seeing the 2.2d run.)
+- Does the multi-seed averaging warrant an eventual baseline regeneration at K=3 for a tighter regression-test contract? (Decide after 2.2d acceptance.)
+
 ## Phase 3 — Bayesian optimization sweep (stub)
 
 - **Goal:** Replace or augment the loop's proposer with a BO layer over the most sensitive `GAME` constants, using the balance-delta as the objective.
