@@ -18,10 +18,8 @@
 //                      desktop app but not on PATH (e.g. on Windows,
 //                      %APPDATA%\Claude\claude-code\<version>\claude.exe).
 
-import { execSync } from "node:child_process";
+import { execSync, execFileSync } from "node:child_process";
 import fs from "node:fs";
-import { runAveragedBatch } from "../src/sim/runAveragedBatch.js";
-import { randomPolicy, aiPolicy } from "../src/sim/policies.js";
 import { runLoop } from "../src/tune/loop.js";
 import { propose as heuristicPropose } from "../src/tune/proposer.js";
 import { writeBundle, revertBundle } from "../src/tune/applyProposal.js";
@@ -50,18 +48,16 @@ const maxIterations = flag("max-iters", 30);
 const maxWallMs = flag("max-wall-ms", 45 * 60 * 1000);
 
 function runSim() {
-  const count = 1000;
-  const startSeed = 1;
-  const seedChunks = 3;
-  const matchups = [
-    runAveragedBatch({ startSeed, count, seedChunks,
-                       engPolicy: randomPolicy, conPolicy: randomPolicy,
-                       engPolicyName: "random", conPolicyName: "random" }),
-    runAveragedBatch({ startSeed, count, seedChunks,
-                       engPolicy: randomPolicy, conPolicy: aiPolicy,
-                       engPolicyName: "random", conPolicyName: "ai" }),
-  ];
-  return { matchups };
+  // Phase 2.2e: spawn a fresh Node process per call so the sim reads the
+  // current content/*.json state from disk rather than the ESM-cached
+  // singletons from this process's module-init. See ROADMAP.md Phase 2.2e
+  // for the cache-bug background.
+  const cfg = JSON.stringify({ startSeed: 1, count: 1000, seedChunks: 3 });
+  const stdout = execFileSync("node", ["scripts/tune-sim.js", cfg], {
+    encoding: "utf-8",
+    maxBuffer: 16 * 1024 * 1024, // 16MB — reports are small (~1-2KB) but give headroom.
+  });
+  return JSON.parse(stdout);
 }
 
 function runTests() {
