@@ -5,18 +5,24 @@
 import { execFileSync } from "node:child_process";
 
 /**
- * Default exec: invokes `<executable> -p <prompt> --output-format json --model <model>`
- * with a hard timeout (ms). Returns stdout as a UTF-8 string. Throws on nonzero
- * exit or timeout (the error's .signal property is "SIGTERM" for timeout).
+ * Default exec: invokes `<executable> -p --output-format json --model <model>` and
+ * writes the prompt on the child's stdin. Stdin is required because the Windows
+ * CreateProcess command-line limit is ~32 KiB; the dialog-author pipeline embeds
+ * the full source material doc in its prompt, which blows past that. On POSIX
+ * this just works the same — `-p` with no positional reads from stdin.
+ *
+ * Returns stdout as a UTF-8 string. Throws on nonzero exit or timeout (the
+ * error's .signal property is "SIGTERM" for timeout).
  *
  * No shell interpolation — execFileSync arg-array form avoids shell injection.
  */
 function defaultExec({ prompt, model, timeoutMs, executable }) {
-  const args = ["-p", prompt, "--output-format", "json", "--model", model];
+  const args = ["-p", "--output-format", "json", "--model", model];
   return execFileSync(executable, args, {
     encoding: "utf-8",
     timeout: timeoutMs,
     maxBuffer: 10 * 1024 * 1024,   // 10 MiB — prompt+response can be large
+    input: prompt,
   });
 }
 
