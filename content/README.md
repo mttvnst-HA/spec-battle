@@ -4,16 +4,50 @@ All game content lives in this directory as simple JSON files. You can add quote
 
 ## Adding a Quote
 
-Edit `quotes/engineer.json` or `quotes/contractor.json`. Find the move name and add a string to its array:
+Edit `quotes/engineer.json` or `quotes/contractor.json`. Each move's quotes are organized into named **buckets** — the runtime picks one based on game state:
 
 ```json
 {
-  "REJECT SUBMITTAL": [
-    "...existing quotes...",
-    "Your new quote goes here."
-  ]
+  "REJECT SUBMITTAL": {
+    "default": [
+      "Fallback pool — used when no more specific bucket fires.",
+      "Your new quote goes here."
+    ],
+    "opening": [
+      "Used only on the character's very first move of the match."
+    ],
+    "vs_SUBMIT_RFI": [
+      "Used when the opponent's previous move was SUBMIT RFI."
+    ]
+  }
 }
 ```
+
+### Bucket resolution
+
+`src/game/dialog.js` picks a bucket in this priority order:
+
+1. `opening` — the character's `*LastMove` is still null (first turn).
+2. `vs_<OPPONENT_MOVE>` — the opponent's previous move matches.
+3. `default` — fallback, always present.
+
+The `default` bucket is **required**. `opening` and `vs_*` buckets are optional and can be added as thin or rich as you like.
+
+### `vs_<MOVE>` naming rule
+
+The suffix must match the opponent's move name with spaces and hyphens replaced by underscores, case preserved (all caps):
+
+| Opponent move | Bucket key |
+|---|---|
+| `SUBMIT RFI` | `vs_SUBMIT_RFI` |
+| `OR-EQUAL GAMBIT` | `vs_OR_EQUAL_GAMBIT` |
+| `VALUE ENGINEER` | `vs_VALUE_ENGINEER` |
+
+The canonical counter pairings worth targeting first live in [`src/game/counters.js`](../src/game/counters.js) — writing a `vs_*` bucket for one of those triples will fire on a guaranteed ⚔️ COUNTER with the move's status effect locked in.
+
+### Legacy flat-array form
+
+The content loader still accepts the old flat-array shape and normalizes it to `{ default: [...] }` at load time, so existing flat entries keep working. New or updated entries should use the bucketed form.
 
 ## Adding an Intro Sequence
 
@@ -83,7 +117,7 @@ Use literal emoji characters (not escape sequences like `\u{1F4CB}` — those ar
 | `"weaken"` | Target takes 30% more damage next hit |
 | `"slow"` | 40% chance to slow target |
 | `"defense"` | Caster takes 50% less damage for one hit |
-| `"heal"` | Heal 28-45 HP instead of dealing damage (set dmg to [0, 0]) |
+| `"heal"` | Heal HP instead of dealing damage (amount is `healRange` in `game.json`, currently `[30, 46]`; set the move's `dmg` to `[0, 0]`) |
 
 ## For Claude: Generating Content from the Bible
 
