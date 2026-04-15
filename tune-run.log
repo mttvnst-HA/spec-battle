@@ -47,3 +47,7 @@ warning: in the working copy of 'content/moves/contractor.json', LF will be repl
 warning: in the working copy of 'content/moves/engineer.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'tune-run.log', LF will be replaced by CRLF the next time Git touches it
 [tune] iter 10: Nerf eng highest-dmg+stun move; buff con's best damage move to close gap
+warning: in the working copy of 'content/game.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'content/moves/contractor.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'content/moves/engineer.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tune-run.log', LF will be replaced by CRLF the next time Git touches it
