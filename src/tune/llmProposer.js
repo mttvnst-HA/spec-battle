@@ -22,8 +22,8 @@ Every target in your bundle MUST match one of these two patterns:
 # Step-size bounds (REJECTED if exceeded)
 - dmg: must be a [min, max] array of integers; shift both bounds by ±1 only
 - mp: integer, shift by ±1 only
-- GAME rates (critRate, stunChance, slowChance): shift by ±0.02 only, stay in [0, 1]
-- GAME multipliers (critMultiplier, weakenedMultiplier, defMultiplier): shift by ±0.05 only, stay > 0
+- GAME rates (critRate, stunChance, slowChance, aiCounterBias): shift by ±0.02 only, stay in [0, 1]
+- GAME multipliers (critMultiplier, weakenedMultiplier, defMultiplier, counterMultiplier): shift by ±0.05 only, stay > 0
 - GAME.mpRegen: integer, shift by ±1 only, stay ≥ 0
 - GAME.healRange: [min, max] ints; min shift by ±2, max shift by ±1, min ≤ max
 
@@ -47,6 +47,7 @@ do NOT guess; copy from the Current content section below.
 - 6 moves per side. Engineer 140HP/70MP, Contractor 150HP/60MP.
 - Status: STUNNED (skip turn), SLOWED (visual), WEAKENED (+30% dmg taken), DEF+ (−50% dmg taken).
 - MP regens by GAME.mpRegen each turn. Crits fire at GAME.critRate with GAME.critMultiplier damage.
+- Canonical counters: 13 (initiator, counterer, counter-move) triples. When the opponent's prior move matches a canonical initiator, the counter applies GAME.counterMultiplier damage and guarantees the move's status effect. The AI contractor prefers a legal counter with probability GAME.aiCounterBias (engineer AI does not exist; random policy plays engineer in sims).
 
 `;
 
@@ -137,13 +138,13 @@ const TARGET_RE = /^(GAME\.[a-zA-Z]+|(?:engineer|contractor)\..+\.(?:dmg|mp))$/;
 function validateStep(target, before, after) {
   if (target.startsWith("GAME.")) {
     const key = target.slice("GAME.".length);
-    if (["critRate", "stunChance", "slowChance"].includes(key)) {
+    if (["critRate", "stunChance", "slowChance", "aiCounterBias"].includes(key)) {
       if (typeof before !== "number" || typeof after !== "number") return "rate must be numeric";
       if (Math.abs(after - before) > 0.02 + 1e-9) return `${key} step > 0.02`;
       if (after < 0 || after > 1) return `${key} out of [0,1]`;
       return null;
     }
-    if (["critMultiplier", "weakenedMultiplier", "defMultiplier"].includes(key)) {
+    if (["critMultiplier", "weakenedMultiplier", "defMultiplier", "counterMultiplier"].includes(key)) {
       if (typeof before !== "number" || typeof after !== "number") return "multiplier must be numeric";
       if (Math.abs(after - before) > 0.05 + 1e-9) return `${key} step > 0.05`;
       if (after <= 0) return `${key} must be > 0`;

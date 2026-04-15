@@ -2,7 +2,15 @@ import { describe, it, expect } from "vitest";
 import { parseBundle } from "../tune/llmProposer.js";
 
 const state = {
-  GAME: { critRate: 0.12, critMultiplier: 1.6, mpRegen: 4, healRange: [28, 45], weakenedMultiplier: 1.3 },
+  GAME: {
+    critRate: 0.12,
+    critMultiplier: 1.6,
+    mpRegen: 4,
+    healRange: [28, 45],
+    weakenedMultiplier: 1.3,
+    counterMultiplier: 1.3,
+    aiCounterBias: 0.7,
+  },
   moves: {
     engineer: [{ name: "REJECT SUBMITTAL", dmg: [16, 24], mp: 10 }],
     contractor: [{ name: "CLAIM DSC", dmg: [18, 28], mp: 12 }],
@@ -184,5 +192,31 @@ describe("parseBundle — schema violations", () => {
       targets: [{ target: "engineer.a.b.dmg", before: [1, 2], after: [2, 3] }] }), state);
     expect(r.ok).toBe(false);
     expect(r.error).toMatch(/no move/);
+  });
+
+  it("accepts ±0.02 step on GAME.aiCounterBias (rate bounds)", () => {
+    const r = parseBundle(ok({ rule: "r", summary: "s",
+      targets: [{ target: "GAME.aiCounterBias", before: 0.7, after: 0.68 }] }), state);
+    expect(r.ok).toBe(true);
+  });
+
+  it("rejects step > 0.02 on GAME.aiCounterBias", () => {
+    const r = parseBundle(ok({ rule: "r", summary: "s",
+      targets: [{ target: "GAME.aiCounterBias", before: 0.7, after: 0.75 }] }), state);
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/aiCounterBias step > 0\.02/);
+  });
+
+  it("accepts ±0.05 step on GAME.counterMultiplier (multiplier bounds)", () => {
+    const r = parseBundle(ok({ rule: "r", summary: "s",
+      targets: [{ target: "GAME.counterMultiplier", before: 1.3, after: 1.25 }] }), state);
+    expect(r.ok).toBe(true);
+  });
+
+  it("rejects step > 0.05 on GAME.counterMultiplier", () => {
+    const r = parseBundle(ok({ rule: "r", summary: "s",
+      targets: [{ target: "GAME.counterMultiplier", before: 1.3, after: 1.5 }] }), state);
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/counterMultiplier step > 0\.05/);
   });
 });
