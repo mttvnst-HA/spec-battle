@@ -2,7 +2,7 @@ import { C, STATUS, GAME, clamp } from "../constants.js";
 import { random, rand, pick } from "./rng.js";
 import { CONTRACTOR } from "../data/characters.js";
 import { pickDialog } from "./dialog.js";
-import { isCounter as checkCounter, getCounterEntry } from "./counters.js";
+import { isCounter as checkCounter, getCounterEntry, COUNTER_ROUTING } from "./counters.js";
 
 export function calculateDamage(move, defenderStatus, isCounter = false) {
   let dmg = rand(move.dmg[0], move.dmg[1]);
@@ -90,6 +90,17 @@ export function resolveMove(state, attacker, move, isPlayer, opponentLastMove = 
 }
 
 export function pickAIMove(state) {
+  // Counter bias — if engineer's last move opens a contractor counter and
+  // we can afford it, play it with probability GAME.aiCounterBias.
+  if (state.engLastMove) {
+    const candidates = COUNTER_ROUTING
+      .filter((e) => e.counterer === "contractor" && e.initiator === state.engLastMove)
+      .map((e) => CONTRACTOR.moves.find((m) => m.name === e.counterMove))
+      .filter((m) => m && m.mp <= state.conMp);
+    if (candidates.length > 0 && random() < GAME.aiCounterBias) {
+      return pick(candidates);
+    }
+  }
   // Heal if low
   if (state.conHp < 50 && state.conMp >= 15) return CONTRACTOR.moves[2]; // VALUE ENGINEER
   // Use Reserve Rights if weakened

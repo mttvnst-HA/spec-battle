@@ -285,3 +285,35 @@ describe("resolveMove counter detection", () => {
     expect(counterLine).toBeUndefined();
   });
 });
+
+describe("pickAIMove counter awareness", () => {
+  it("returns the contractor counter when engineer's last move is a canonical initiator", () => {
+    seedRng(1); // first random() ≈ 0.00006, well below aiCounterBias (0.7)
+    const state = {
+      engHp: 140, conHp: 150, engMp: 70, conMp: 60,
+      engStatus: null, conStatus: null,
+      engLastMove: "CITE UFC",  // canonical contractor counter → CLAIM DSC
+      conLastMove: null,
+    };
+    const move = pickAIMove(state);
+    expect(move.name).toBe("CLAIM DSC");
+  });
+
+  it("falls through to existing tiers when there is no engLastMove", () => {
+    seedRng(1);
+    const state = {
+      engHp: 140, conHp: 150, engMp: 70, conMp: 60,
+      engStatus: null, conStatus: null,
+      engLastMove: null, conLastMove: null,
+    };
+    const move = pickAIMove(state);
+    expect([
+      "SUBMIT RFI",
+      "CLAIM DSC",
+      "VALUE ENGINEER",
+      "SCHEDULE DELAY",
+      "OR-EQUAL GAMBIT",
+      "RESERVE RIGHTS",
+    ]).toContain(move.name);
+  });
+});
