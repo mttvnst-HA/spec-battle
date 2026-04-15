@@ -12,3 +12,8 @@ warning: in the working copy of 'content/moves/contractor.json', LF will be repl
 warning: in the working copy of 'content/moves/engineer.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'tune-run.log', LF will be replaced by CRLF the next time Git touches it
 [tune] iter 3: Raise CLAIM DSC dmg — contractor's best hit lags CURE NOTICE by ~9 avg pts
+warning: in the working copy of 'content/game.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'content/moves/contractor.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'content/moves/engineer.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tune-run.log', LF will be replaced by CRLF the next time Git touches it
+[tune] iter 4: Lower CURE NOTICE dmg — highest-dmg move in game with stun, drives random-vs-random dominance
