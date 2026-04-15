@@ -33,16 +33,20 @@ export function resolveMove(state, attacker, move, isPlayer, opponentLastMove = 
   const isOpening = isPlayer ? state.engLastMove == null : state.conLastMove == null;
   const isCounter = checkCounter(attackerSide, move.name, opponentLastMove);
   const quote = pickDialog({ attackerSide, move, opponentLastMove, isOpening });
+  const side = attackerSide;
   let newLog = [
-    { text: `${attacker.name} uses ${move.emoji} ${move.name}!`, color: C.bright },
-    { text: `  "${quote}"`, color: C.white },
+    { text: `${attacker.name} uses ${move.emoji} ${move.name}!`, color: isPlayer ? C.bright : C.orange, gap: true, side },
+    { text: `"${quote}"`, side },
   ];
 
   if (isCounter) {
     const entry = getCounterEntry(attackerSide, move.name, opponentLastMove);
+    newLog[0].gap = false;
     newLog.unshift({
       text: `⚔️ COUNTER! ${move.name} vs ${entry.initiator}`,
       color: C.yellow,
+      gap: true,
+      side,
     });
   }
 
@@ -54,7 +58,7 @@ export function resolveMove(state, attacker, move, isPlayer, opponentLastMove = 
     const heal = rand(GAME.healRange[0], GAME.healRange[1]);
     if (isPlayer) s.engHp = clamp(s.engHp + heal, 0, attacker.maxHp);
     else s.conHp = clamp(s.conHp + heal, 0, attacker.maxHp);
-    newLog.push({ text: `  Recovered ${heal} HP!`, color: C.hpGreen });
+    newLog.push({ text: `  Recovered ${heal} HP!`, color: C.hpGreen, side });
     s.log = [...s.log, ...newLog];
     return s;
   }
@@ -62,7 +66,7 @@ export function resolveMove(state, attacker, move, isPlayer, opponentLastMove = 
   // Defense buff
   if (move.effect === "defense") {
     if (isPlayer) s.engStatus = STATUS.DEF_PLUS; else s.conStatus = STATUS.DEF_PLUS;
-    newLog.push({ text: `  Defense raised!`, color: C.cyan });
+    newLog.push({ text: `  Defense raised!`, color: C.cyan, side });
   }
 
   // Damage calc (before applying offensive status effects so DEF+ isn't overwritten)
@@ -71,16 +75,16 @@ export function resolveMove(state, attacker, move, isPlayer, opponentLastMove = 
 
   if (isPlayer) { s.conHp = Math.max(0, s.conHp - dmg); s.conShake += 1; }
   else { s.engHp = Math.max(0, s.engHp - dmg); s.engShake += 1; }
-  newLog.push({ text: `  ${crit ? "CRITICAL HIT! " : ""}${dmg} damage!`, color: crit ? C.yellow : C.red });
+  newLog.push({ text: `  ${crit ? "CRITICAL HIT! " : ""}${dmg} damage!`, color: crit ? C.yellow : C.red, side });
 
   // Status effects applied AFTER damage
   const newStatus = rollStatusEffect(move, isCounter);
   if (newStatus) {
     if (isPlayer) s.conStatus = newStatus; else s.engStatus = newStatus;
     const statusMessages = {
-      [STATUS.WEAKENED]: { text: `  Target's defense lowered!`, color: C.orange },
-      [STATUS.STUNNED]: { text: `  Target is STUNNED!`, color: C.yellow },
-      [STATUS.SLOWED]: { text: `  Target is SLOWED!`, color: C.orange },
+      [STATUS.WEAKENED]: { text: `  Target's defense lowered!`, color: C.orange, side },
+      [STATUS.STUNNED]: { text: `  Target is STUNNED!`, color: C.yellow, side },
+      [STATUS.SLOWED]: { text: `  Target is SLOWED!`, color: C.orange, side },
     };
     newLog.push(statusMessages[newStatus]);
   }

@@ -6,7 +6,7 @@ export const C = {
   bg: "#0a0e14", panel: "#111820", border: "#2a3a4a",
   bright: "#00ff88", dim: "#1a6644", red: "#ff4444",
   orange: "#ff8844", yellow: "#ffcc00", cyan: "#44ccff",
-  white: "#e0e8f0", muted: "#556677",
+  white: "#e0e8f0", muted: "#8899aa",
   hpGreen: "#00cc66", hpRed: "#cc2222", mpBlue: "#3388ee",
 };
 
