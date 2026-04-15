@@ -20,7 +20,7 @@
 
 import { execSync } from "node:child_process";
 import fs from "node:fs";
-import { runBatch } from "../src/sim/runBatch.js";
+import { runAveragedBatch } from "../src/sim/runAveragedBatch.js";
 import { randomPolicy, aiPolicy } from "../src/sim/policies.js";
 import { runLoop } from "../src/tune/loop.js";
 import { propose as heuristicPropose } from "../src/tune/proposer.js";
@@ -52,11 +52,14 @@ const maxWallMs = flag("max-wall-ms", 45 * 60 * 1000);
 function runSim() {
   const count = 1000;
   const startSeed = 1;
+  const seedChunks = 3;
   const matchups = [
-    runBatch({ startSeed, count, engPolicy: randomPolicy, conPolicy: randomPolicy,
-               engPolicyName: "random", conPolicyName: "random" }),
-    runBatch({ startSeed, count, engPolicy: randomPolicy, conPolicy: aiPolicy,
-               engPolicyName: "random", conPolicyName: "ai" }),
+    runAveragedBatch({ startSeed, count, seedChunks,
+                       engPolicy: randomPolicy, conPolicy: randomPolicy,
+                       engPolicyName: "random", conPolicyName: "random" }),
+    runAveragedBatch({ startSeed, count, seedChunks,
+                       engPolicy: randomPolicy, conPolicy: aiPolicy,
+                       engPolicyName: "random", conPolicyName: "ai" }),
   ];
   return { matchups };
 }
