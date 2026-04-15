@@ -1,0 +1,8 @@
+
+> spec-battle-rpg@1.0.0 tune:llm
+> node scripts/tune.js --llm
+
+[tune] iter 1: Raise VALUE ENGINEER heal floor+ceiling — contractor survives longer in both matchups
+warning: in the working copy of 'content/game.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'content/moves/contractor.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'content/moves/engineer.json', LF will be replaced by CRLF the next time Git touches it
