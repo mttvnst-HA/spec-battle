@@ -13,6 +13,41 @@
     "vs_INVOKE_SHALL": [
       "The specification says SHALL apply sealant. SHALL what, exactly? Per ASTM C920 or C1193? This RFI is submitted for clarification.",
       "You invoked SHALL but the design intent is ambiguous. RFI submitted without prejudice to critical-path claims."
+    ],
+    "vs_REJECT_SUBMITTAL": [
+      "RFI 214: you rejected the submittal. What would have approved it?",
+      "We read the rejection. All sixteen pages. One of us did, anyway.",
+      "Base approved an identical submittal last Tuesday at Building 9. RFI: is Tuesday still good?",
+      "Your comments are thorough. We'd like them again, in a different color.",
+      "Respectfully, 'revise and resubmit' isn't an answer. The revision is the question."
+    ],
+    "vs_RED_LINE_SPEC": [
+      "Your red-lines are thorough. RFI: are they binding, or just colorful?",
+      "Forty-seven red-lines, twelve contradictions, one RFI.",
+      "Base accepted pencil marks last project. RFI: does red cost extra?",
+      "Per the red-lines, was paragraph 3 deleted, or just lightly discouraged?",
+      "The markup contradicts the spec. We'll defer to whichever one is in color."
+    ],
+    "vs_ISSUE_NCR": [
+      "RFI 389: the NCR cites non-conformance. Non-conforming to which version, specifically?",
+      "We'll close the NCR when you close RFI 212.",
+      "Our QC passed it Tuesday. Your NCR hit Wednesday. RFI to the calendar.",
+      "NCR cites ACI 318. RFI: the 2014 edition, the 2019, or the one on your shelf?",
+      "Base closed a similar NCR with a phone call. RFI: what's your extension?"
+    ],
+    "vs_CITE_UFC": [
+      "RFI 501: the UFC wasn't on the references page. Does it govern anyway?",
+      "We read UFC 3-600-01. All 190 pages. RFI on paragraph 2.",
+      "Base didn't invoke this UFC last project. RFI: what changed?",
+      "The UFC says 'must.' The spec says 'shall.' RFI: which verb wins?",
+      "You cited UFC 3-401-01. Our sub cited a different one. RFI to reconcile."
+    ],
+    "vs_CURE_NOTICE": [
+      "RFI 312: please clarify which of the 47 pending RFIs the Cure Notice is contingent on.",
+      "Ten days to cure. Twenty-two days overdue on the RFI that caused the failure.",
+      "Our counsel thinks the Cure Notice might be Government-caused delay. Probably.",
+      "The cure is somewhere in the documents. RFI 313 asks for it in writing.",
+      "Every other CO answers RFI 212 before issuing a Cure Notice. You've got range."
     ]
   },
   "CLAIM DSC": {
@@ -28,6 +63,41 @@
     "vs_CITE_UFC": [
       "UFC 3-220-01 governs above-ground design. It doesn't speak to the subsurface conditions we encountered. This is DSC territory.",
       "You cited UFC. The UFC is silent on the boulder field we just hit. FAR 52.236-2 notice filed."
+    ],
+    "vs_REJECT_SUBMITTAL": [
+      "You rejected drawings built to a boring log the site doesn't match.",
+      "Your rejection is paperwork. Our DSC notice is what's in the ground.",
+      "Withdraw the rejection or process the equitable adjustment under 52.236-2.",
+      "Thank you for the detailed rejection comments — attaching them to the DSC file as exhibit A.",
+      "A submittal can't conform to a spec written for soil that isn't there."
+    ],
+    "vs_INVOKE_SHALL": [
+      "The pile shall reach -25. The rock at -18 doesn't care what the pile shall do.",
+      "You can SHALL all you want. The granite is still where it is.",
+      "Mandatory verb, unchanged subsurface. Type I under 52.236-2.",
+      "The verb didn't change. The dirt did.",
+      "Shall means shall. Rock means rock. Refusal at -18 means refusal at -18."
+    ],
+    "vs_RED_LINE_SPEC": [
+      "Your red-lines end at grade. The Differing Site Conditions start six feet below it.",
+      "Red ink doesn't move rock. Notice of Differing Site Conditions attached.",
+      "Six red-lines today, still zero mention of the weathered siltstone at elevation -6.",
+      "Clean red-line work. Shame the Type I notice predates all of it.",
+      "Your red-lines govern the paper. The DSC governs the dirt the building sits on."
+    ],
+    "vs_ISSUE_NCR": [
+      "NCR cites short embedment. Short embedment is because we hit rock at minus six. Type I.",
+      "Thanks for the photos. They attach nicely to our 52.236-2 notice.",
+      "Three borings in two hundred feet. None of them hit what we hit.",
+      "We preserved the condition. Come look before you write the next NCR.",
+      "Our sub says it's rock. The geotech says it's rock. Your NCR says it's defective work. Two out of three."
+    ],
+    "vs_CURE_NOTICE": [
+      "The Cure Notice blames our progress. The siltstone blames your geotech. 52.249-10(b).",
+      "Ten days to dig out a hundred tons of unexpected rock. The calendar doesn't care about your cure period.",
+      "Appreciate the Cure Notice — it'll sit nicely next to our DSC notice from August at the Board.",
+      "Progress failed because the site isn't what the RFP drew. That's excusable delay, not default.",
+      "Other contractors on this base hit the same formation and got 90 days. We'll settle for 60."
     ]
   },
   "VALUE ENGINEER": {
@@ -43,6 +113,41 @@
     "vs_REJECT_SUBMITTAL": [
       "You rejected our submittal. Fine. Here's a VECP with a cheaper product that still meets performance. 55% split.",
       "Rather than resubmit, we propose a value engineering change proposal. Same function, lower cost, mutual savings."
+    ],
+    "vs_CITE_UFC": [
+      "The UFC sets the floor. Our VECP lives on the floor. 55/45 on the savings below your ceiling.",
+      "Pendleton accepted this exact VECP against this exact UFC last year. Acceptance letter attached.",
+      "Thank you for naming the performance class — our substitute meets it to the decimal.",
+      "Our DOR ran the UFC check. Probably clears Class A. We rounded up if it matters.",
+      "VECP 011 is on day 44 of the 45-day window. Silence tomorrow is constructive acceptance under 52.248-3."
+    ],
+    "vs_RED_LINE_SPEC": [
+      "Appreciate the red ink. It'll be easier to read once we VECP the whole section.",
+      "Your red-lines are on the baseline. Our VECP replaces the baseline.",
+      "We priced your red-lines. The VECP comes out cheaper. 55/45.",
+      "Every red-line raised the cost. Every VECP lowers it. The math prefers us.",
+      "Other engineers accepted this VECP at NBVC last year. Same product, different red pen."
+    ],
+    "vs_ISSUE_NCR": [
+      "What if the non-conforming work IS the VECP? Net savings $847K. 55/45 split.",
+      "Other engineers accepted this exact deviation as a VECP. Three bases. Acceptance letters attached.",
+      "Grateful you photographed the defect — those pictures go straight into the VECP submittal.",
+      "Our designer thinks this probably meets spec. Either way, we'll VECP it. Refund the NCR.",
+      "Rework is $400K. VECP saves $847K. Accept the proposal — the defect pays for itself."
+    ],
+    "vs_INVOKE_SHALL": [
+      "Your 'shall' applies to the baseline. Our VECP is the new baseline.",
+      "Appreciate the emphasis. The VECP still saves the Government $400K.",
+      "'Shall' is in the contract. The savings are in a spreadsheet. One of them flexes.",
+      "The spec shalls us to buy expensive. The VECP shalls us to buy cheap. Same verb.",
+      "Other engineers said 'shall' too. Then they signed the mod."
+    ],
+    "vs_CURE_NOTICE": [
+      "Day 3 of 10. VECP 015 attached. The cure IS the VECP.",
+      "Respectfully, a $3M VECP cures more than a termination. Do the math before signing the T4D.",
+      "Other COs accepted concurrent VECPs in exactly this posture. It's the standard off-ramp.",
+      "Thank you for the Cure Notice — it clarifies which scope items are now VECP-eligible under 52.248-3.",
+      "The VECP shortens the critical path 60 days. The Cure Notice wants 10. Accept it, beat the cure."
     ]
   },
   "SCHEDULE DELAY": {
@@ -57,6 +162,41 @@
     "vs_ISSUE_NCR": [
       "Your NCR required rework that consumed 12 days of float on Activity 420. CPM update attached.",
       "The NCR drove the rebar resequencing, which drove the critical-path slip. Time extension requested."
+    ],
+    "vs_RED_LINE_SPEC": [
+      "Your red-lines added scope. The TIA's 14 days and compensable.",
+      "I counted the red-lines. Forty-seven of them hit the critical path.",
+      "Our scheduler thinks the red-line cycle IS the critical path now. Probably.",
+      "Other engineers red-line without burning float. Just saying.",
+      "Thank you for the thorough markup. The 27-day TIA is the thank-you card."
+    ],
+    "vs_REJECT_SUBMITTAL": [
+      "Submittal 117 sat 31 days in a 20-day window. TIA attached — 11 days compensable under 52.242-14.",
+      "Your rejection reset the clock, and the clock runs through the critical path. CPM update Friday.",
+      "Thank you for the 47 red-line comments. Each one documents review time now tracking as compensable.",
+      "Other bases clear identical submittals in 14 days. Yours is at 38. Project-specific interference.",
+      "Our scheduler thinks the critical path now runs through your review desk. Pretty sure. TIA inbound."
+    ],
+    "vs_INVOKE_SHALL": [
+      "'Shall' doesn't move the Contract Completion Date.",
+      "Shall means mandatory. Mandatory means 18 more days on the calendar.",
+      "We shall complete. Probably August.",
+      "Every 'shall' you invoked cost us two days. We did the math.",
+      "Thank you for the clear verb. The equally clear 30-day extension is attached."
+    ],
+    "vs_CITE_UFC": [
+      "UFC 3-600-01 doesn't have a completion date. The contract does.",
+      "Reading UFC 4-010-01 cost us three weeks. Now it's critical path.",
+      "Other bases let us work to the IBC floor. Your UFC pull burned 22 days.",
+      "Thank you for the UFC citation. The research ate 15 days of float.",
+      "Our scheduler thinks the UFC deep-dive is Government-caused. We're 80% sure."
+    ],
+    "vs_CURE_NOTICE": [
+      "Ten days to cure is impossible. 52.249-10(b) excusable-delay request inbound.",
+      "The cure period itself needs a TIA, respectfully.",
+      "Four unanswered RFIs built this cure notice. That's Government-caused delay.",
+      "We think we can cure in 38 days. Our scheduler is 60% confident.",
+      "Thank you for the ten-day clock. The 27-day extension request is our cure."
     ]
   },
   "OR-EQUAL GAMBIT": {
@@ -73,6 +213,41 @@
     "vs_RED_LINE_SPEC": [
       "You red-lined the specified product. Our or-equal meets all salient characteristics per 01 60 00.",
       "Red-lines don't preclude an approved equal. Our substitution documentation is attached and complete."
+    ],
+    "vs_INVOKE_SHALL": [
+      "The spec shall perform at 450 GPM. Our substitute shall perform at 451. You're welcome to the extra gallon.",
+      "Shall means shall. Also means no brand name attached. Our 'or equal' satisfies both halves.",
+      "Your 'shall' is doing a lot of work. Our substitute meets every salient characteristic. Probably all seven.",
+      "You invoked shall. We invoked 01 60 00. Section number wins the tiebreaker.",
+      "The mandatory verb applies to the function. The function is met. The logo is optional."
+    ],
+    "vs_CITE_UFC": [
+      "The UFC sets the floor. Our substitute sits right on the floor, respectfully.",
+      "UFC 3-401-01 names Class A. Our substitute is Class A at 60% of the price. Same class, different logo.",
+      "You cited the UFC. We cited the UFC. We picked a different product that meets it. Convergent engineering.",
+      "Other engineers read that UFC and approved this substitute at three bases. Probably four.",
+      "Thank you for the UFC reference — it confirmed our substitute is compliant."
+    ],
+    "vs_CURE_NOTICE": [
+      "The cure IS the substitution. Specified valve ships from Taiwan in 18 weeks.",
+      "'Or equal' under 01 60 00 attached. Consider this the requested cure.",
+      "Base accepted this exact equal at Building 101 in March. Your Cure Notice demands unobtainium.",
+      "Ten days to cure, 26 weeks on the named pump. Math says substitute.",
+      "Our rep confirms it meets all seven salient characteristics. Probably eight."
+    ],
+    "vs_REJECT_SUBMITTAL": [
+      "You rejected the spec product. Good news — here's one you've never heard of, submitted under 01 60 00.",
+      "Code C says revise. Our revision is a new manufacturer, same function, 38% cheaper.",
+      "You marked it non-conforming; we marked it discontinued. Either way we're substituting.",
+      "Base approved this exact substitute at Building 7. Their reviewer didn't flag any of the characteristics you did.",
+      "Thank you for the detailed rejection — it gave us the salient characteristics list we needed to pick the substitute."
+    ],
+    "vs_ISSUE_NCR": [
+      "The NCR cites unapproved substitution. Submittal 117 fixes that — it's been on your desk 22 days.",
+      "You wrote the NCR; we wrote the 'or equal' package. Call it even.",
+      "Pull the NCR, approve the substitute, nobody has to visit Building 7.",
+      "Our sub installed it. Their rep said it meets spec. Verbally. We're filing the paperwork now.",
+      "Four of seven salient characteristics documented, two pending, one your inspector already nodded at."
     ]
   },
   "RESERVE RIGHTS": {
@@ -90,6 +265,41 @@
     "vs_CURE_NOTICE": [
       "We dispute the cure notice. Performance will continue under protest with full reservation of rights for all impacts.",
       "The cure notice is predicated on contested facts. We reserve all rights, including appeal to the Board of Contract Appeals."
+    ],
+    "vs_ISSUE_NCR": [
+      "Correcting the NCR under protest. The protest is longer than the NCR.",
+      "We'll fix it and bill the rework as a constructive change under 52.243-4. You're welcome.",
+      "NCR-037 closes tomorrow. Certified claim opens the day after.",
+      "Complying, reserving rights, and keeping daily logs. All three are evidence now.",
+      "Re-doing the work without admitting it was wrong. REA lands in thirty days."
+    ],
+    "vs_INVOKE_SHALL": [
+      "'Shall' noted. Performing. The Board can tell us what it meant.",
+      "Complying with the verb. Reserving rights under 52.233-1 on the object.",
+      "Shall means mandatory. The ASBCA will decide mandatory WHAT.",
+      "You invoked a word §2-4.4 banned. Our REA cites the irony.",
+      "Performing as shall-directed. Certified claim is in drafting."
+    ],
+    "vs_REJECT_SUBMITTAL": [
+      "Resubmitting as directed. 52.243-4 REA follows the rework by about an hour.",
+      "Code C noted. The claim was drafted before your rejection hit our inbox.",
+      "Third rejection on this SD-02. Rights reserved three ways.",
+      "Revising. Reserving rights on whether a revision was ever required.",
+      "Complying without admitting. Two separate activities."
+    ],
+    "vs_RED_LINE_SPEC": [
+      "Incorporating your red-lines. Each one gets its own line-item on the REA.",
+      "Red ink in, change order out. 52.243-4 follows the markup.",
+      "Performing as red-lined. Every red mark is added scope.",
+      "We counted the red pages. The REA has the same page count.",
+      "You marked in red. We'll bill in black."
+    ],
+    "vs_CITE_UFC": [
+      "Noting the UFC citation. Reserving the right to dispute which UFC, which edition, and whether it binds us at all.",
+      "Complying with the UFC under protest. The incorporation question goes to the Board.",
+      "Thanks for the UFC. We'll perform — the RFP didn't actually list it in the reference documents.",
+      "We'll meet the UFC floor. Everything above the floor is a constructive change under 52.243-4.",
+      "Performing without prejudice. The UFC you cited was revised in 2024; we bid to the 2021 edition."
     ]
   }
 }

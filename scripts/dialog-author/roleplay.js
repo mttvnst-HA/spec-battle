@@ -32,9 +32,10 @@ of dialog specific to the prior turn's move. Moves available:
 ENGINEER: REJECT SUBMITTAL, RED-LINE SPEC, INVOKE SHALL, ISSUE NCR, CITE UFC, CURE NOTICE
 CONTRACTOR: SUBMIT RFI, CLAIM DSC, VALUE ENGINEER, SCHEDULE DELAY, OR-EQUAL GAMBIT, RESERVE RIGHTS
 
-Source material (NAVFAC/FAR reference):
+Source material (NAVFAC/FAR reference — the full doc, including the §2-4.4 EDITORIAL
+WEAPONS section, is authoritative context for both characters' voices and ammunition):
 ---
-${sourceDoc.slice(0, 8000)}
+${sourceDoc}
 ---
 
 Output a JSON array of objects: [{ turn: 1, speaker: "contractor", move: "SUBMIT RFI",
@@ -43,6 +44,7 @@ priorMove: null, line: "..." }, ...]. No preamble, no fences, JSON only.`;
 const transport = createCliTransport({
   model: process.env.TUNE_MODEL || "claude-sonnet-4-6",
   timeoutMs: Number(process.env.TUNE_TIMEOUT_MS || 180000),
+  executable: process.env.TUNE_CLAUDE_BIN ?? "claude",
 });
 
 const raw = transport.send(prompt);
