@@ -35,6 +35,7 @@ content/                 -- Game content as editable JSON (see content/README.md
   intros.json            -- Randomized intro sequences
   game-over.json         -- Victory/defeat text pools
 src/
+  main.jsx           -- React entry point (renders App into #root)
   App.jsx              -- Root component (screen state machine, global CSS keyframes)
   constants.js         -- Colors (C), font (PIXEL_FONT), timing/game config, STATUS enum, utils
   data/
@@ -139,7 +140,7 @@ All game content (quotes, moves, intros, game over text) lives in `content/` as 
 
 ## Reference Document
 
-The game bible lives at `reference/ktr-vs-engineer-bible.md`. Sources include CMAA RFI impact studies, FAR clause references, USACE three-phase inspection systems, and real construction industry humor.
+The game bible lives at `reference/ktr-vs-engineer-bible.md`. Sources include CMAA RFI impact studies, FAR clause references, USACE three-phase inspection systems, and real construction industry humor. The `reference/` directory also contains `DFARS_2025-06.pdf` and `ufs_1_300_02.pdf` as primary-source PDFs.
 
 ## Development Commands
 
@@ -156,7 +157,7 @@ npm run tune:dry-run     # 2-iteration smoke test — no file writes, no git ops
 npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 ```
 
-**Commit style:** conventional-commits prefixes (`refactor(content):`, `test(constants):`, `docs(roadmap):`, `fix(test):`, `feat(tune):`) plus a `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>` trailer on AI-assisted commits. Keep subjects under ~70 chars; put rationale in the body.
+**Commit style:** conventional-commits prefixes (`refactor(content):`, `test(constants):`, `docs(roadmap):`, `fix(test):`, `feat(tune):`) plus a `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>` trailer on AI-assisted commits. Keep subjects under ~70 chars; put rationale in the body.
 
 ### Test Structure
 
@@ -164,6 +165,9 @@ npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 |------|---------|
 | `content-integrity` | Validates JSON schemas, required fields, no duplicate quotes |
 | `content-loader` | Verifies character stats, quote merging, color resolution |
+| `counters` | COUNTER_ROUTING triples, isCounter() matching |
+| `dialog` | pickDialog() bucket resolution (opening > vs_ > default) |
+| `dialog-integration` | End-to-end dialog system with content-loader wiring |
 | `logic` | Damage calc, status effects, crits, AI decisions |
 | `reducer` | All action types, turn flow, win detection, MP regen |
 | `constants` | Game balance snapshots, utility functions |
@@ -171,6 +175,7 @@ npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 | `sim-policies` | Random + AI policies: affordability, side-correctness, determinism |
 | `sim-runGame` | One-game driver: determinism, termination, move-count tracking |
 | `sim-runBatch` | N-game aggregation: BalanceReport shape, win-rate sums, determinism |
+| `sim-runAveragedBatch` | Multi-seed K-chunk averaging: determinism, disjoint seed ranges |
 | `balance-regression` | Diffs a fresh run against `balance-baseline.json` per matchup |
 | `tune-convergence` | Pure convergence math: band check, improvement gate, 2pp guard |
 | `tune-applyProposal` | Bundle write/revert against `content/game.json` + moves files; transactional mid-write rollback |
@@ -181,6 +186,7 @@ npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 | `tune-llmProposer-prompt` | buildPrompt shape: static prefix, content embedding, history with deltas, retry context, candidate-distance in history |
 | `tune-llmProposer-parse` | parseBundle ladder (envelope/fences/brace-extract) + schema + step-size violations |
 | `tune-llmProposer-propose` | createLlmProposer glue with fake transport: happy path, parse passthrough, null on transport throw, lastError getter behavior |
+| `tune-sim-driver` | CLI contract for `tune-sim.js`; regression canary that asserts sim output shifts after content mutation |
 
 ## Simulation harness
 
