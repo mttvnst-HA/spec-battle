@@ -18,7 +18,7 @@ describe("Content Loader", () => {
     it("each move has merged quotes", () => {
       ENGINEER.moves.forEach((move) => {
         expect(move.quotes).toBeDefined();
-        expect(move.quotes.length).toBeGreaterThan(0);
+        expect(move.quotes.default.length).toBeGreaterThan(0);
       });
     });
 
@@ -50,7 +50,7 @@ describe("Content Loader", () => {
     it("each move has merged quotes", () => {
       CONTRACTOR.moves.forEach((move) => {
         expect(move.quotes).toBeDefined();
-        expect(move.quotes.length).toBeGreaterThan(0);
+        expect(move.quotes.default.length).toBeGreaterThan(0);
       });
     });
   });
@@ -80,6 +80,24 @@ describe("Content Loader", () => {
       expect(Array.isArray(GAME_OVER_TEXT.contractor)).toBe(true);
       expect(GAME_OVER_TEXT.engineer.length).toBeGreaterThan(0);
       expect(GAME_OVER_TEXT.contractor.length).toBeGreaterThan(0);
+    });
+  });
+});
+
+describe("quote shape normalization", () => {
+  it("every engineer move has quotes as an object with `default` array", () => {
+    ENGINEER.moves.forEach((m) => {
+      expect(m.quotes).toBeTypeOf("object");
+      expect(Array.isArray(m.quotes.default)).toBe(true);
+      expect(m.quotes.default.length).toBeGreaterThan(0);
+    });
+  });
+
+  it("every contractor move has quotes as an object with `default` array", () => {
+    CONTRACTOR.moves.forEach((m) => {
+      expect(m.quotes).toBeTypeOf("object");
+      expect(Array.isArray(m.quotes.default)).toBe(true);
+      expect(m.quotes.default.length).toBeGreaterThan(0);
     });
   });
 });
