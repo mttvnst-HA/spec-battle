@@ -186,6 +186,7 @@ Heuristic balance tuner. Lives under `src/tune/` and `scripts/tune.js`.
 - `writeProposal` uses `JSON.stringify(obj, null, 2)`. After the Phase 2.2a normalization pass (commit `23e22d1`), all `content/*.json` files are stored in that exact format, so write-then-revert produces byte-identical output — no cosmetic diff. If you hand-edit a content JSON file with a different formatter, re-run the Task 1 normalization before committing.
 - Phase 2.2a (commits `fee149c` + `7fd24ed`) relaxed value-hardcoded assertions in `constants.test.js` (Game Balance Constants block, structural/range checks) and `tune-proposer.test.js` (propose round-robin block, shape + step-size invariants). `content-loader.test.js` was already structural. Drift regression coverage lives in `balance-regression.test.js` against `balance-baseline.json`.
 - Proposer's `propose(report, iteration, cfg = readConfig())` accepts an injected config for fully in-memory tests.
+- Phase 2.2d: the tune path runs sim averaged across K=3 disjoint seed chunks (3000 games per matchup per iteration) via `src/sim/runAveragedBatch.js`. Standard error on per-matchup winrate drops from ~1.58pp (n=1000) to ~0.91pp — tight enough that a correctly-directed ±1 step is statistically detectable inside `isImprovement`'s strict-inequality gate. Chunks use disjoint seed ranges (`startSeed + k*count`), so averaging is deterministic. `balance-baseline.json` and `npm run sim` remain single-seed — averaging is tune-only, the baseline contract stays unaveraged.
 
 ### LLM proposer (Phase 2.2b)
 
