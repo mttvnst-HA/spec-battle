@@ -1,9 +1,12 @@
 import { C, STATUS, GAME, clamp } from "../constants.js";
 import { random, rand, pick } from "./rng.js";
 import { CONTRACTOR } from "../data/characters.js";
+import { pickDialog } from "./dialog.js";
+import { isCounter as checkCounter, getCounterEntry, COUNTER_ROUTING } from "./counters.js";
 
-export function calculateDamage(move, defenderStatus) {
+export function calculateDamage(move, defenderStatus, isCounter = false) {
   let dmg = rand(move.dmg[0], move.dmg[1]);
+  if (isCounter) dmg = Math.floor(dmg * GAME.counterMultiplier);
   const crit = random() < GAME.critRate;
   if (crit) dmg = Math.floor(dmg * GAME.critMultiplier);
   if (defenderStatus === STATUS.DEF_PLUS) dmg = Math.floor(dmg * GAME.defMultiplier);
@@ -11,20 +14,37 @@ export function calculateDamage(move, defenderStatus) {
   return { dmg, crit };
 }
 
-export function rollStatusEffect(move) {
+export function rollStatusEffect(move, isCounter = false) {
   if (move.effect === "weaken") return STATUS.WEAKENED;
-  if (move.effect === "stun" && random() < GAME.stunChance) return STATUS.STUNNED;
-  if (move.effect === "slow" && random() < GAME.slowChance) return STATUS.SLOWED;
+  if (move.effect === "stun") {
+    if (isCounter) return STATUS.STUNNED;
+    if (random() < GAME.stunChance) return STATUS.STUNNED;
+  }
+  if (move.effect === "slow") {
+    if (isCounter) return STATUS.SLOWED;
+    if (random() < GAME.slowChance) return STATUS.SLOWED;
+  }
   return null;
 }
 
-export function resolveMove(state, attacker, move, isPlayer) {
+export function resolveMove(state, attacker, move, isPlayer, opponentLastMove = null) {
   let s = { ...state };
-  const quote = pick(move.quotes);
+  const attackerSide = isPlayer ? "engineer" : "contractor";
+  const isOpening = isPlayer ? state.engLastMove == null : state.conLastMove == null;
+  const isCounter = checkCounter(attackerSide, move.name, opponentLastMove);
+  const quote = pickDialog({ attackerSide, move, opponentLastMove, isOpening });
   let newLog = [
     { text: `${attacker.name} uses ${move.emoji} ${move.name}!`, color: C.bright },
     { text: `  "${quote}"`, color: C.white },
   ];
+
+  if (isCounter) {
+    const entry = getCounterEntry(attackerSide, move.name, opponentLastMove);
+    newLog.unshift({
+      text: `⚔️ COUNTER! ${move.name} vs ${entry.initiator}`,
+      color: C.yellow,
+    });
+  }
 
   if (isPlayer) { s.engMp = Math.max(0, s.engMp - move.mp); if (move.effect !== "heal") s.engFlash += 1; }
   else { s.conMp = Math.max(0, s.conMp - move.mp); if (move.effect !== "heal") s.conFlash += 1; }
@@ -47,14 +67,14 @@ export function resolveMove(state, attacker, move, isPlayer) {
 
   // Damage calc (before applying offensive status effects so DEF+ isn't overwritten)
   const defenderStatus = isPlayer ? s.conStatus : s.engStatus;
-  const { dmg, crit } = calculateDamage(move, defenderStatus);
+  const { dmg, crit } = calculateDamage(move, defenderStatus, isCounter);
 
   if (isPlayer) { s.conHp = Math.max(0, s.conHp - dmg); s.conShake += 1; }
   else { s.engHp = Math.max(0, s.engHp - dmg); s.engShake += 1; }
   newLog.push({ text: `  ${crit ? "CRITICAL HIT! " : ""}${dmg} damage!`, color: crit ? C.yellow : C.red });
 
   // Status effects applied AFTER damage
-  const newStatus = rollStatusEffect(move);
+  const newStatus = rollStatusEffect(move, isCounter);
   if (newStatus) {
     if (isPlayer) s.conStatus = newStatus; else s.engStatus = newStatus;
     const statusMessages = {
@@ -70,6 +90,17 @@ export function resolveMove(state, attacker, move, isPlayer) {
 }
 
 export function pickAIMove(state) {
+  // Counter bias — if engineer's last move opens a contractor counter and
+  // we can afford it, play it with probability GAME.aiCounterBias.
+  if (state.engLastMove) {
+    const candidates = COUNTER_ROUTING
+      .filter((e) => e.counterer === "contractor" && e.initiator === state.engLastMove)
+      .map((e) => CONTRACTOR.moves.find((m) => m.name === e.counterMove))
+      .filter((m) => m && m.mp <= state.conMp);
+    if (candidates.length > 0 && random() < GAME.aiCounterBias) {
+      return pick(candidates);
+    }
+  }
   // Heal if low
   if (state.conHp < 50 && state.conMp >= 15) return CONTRACTOR.moves[2]; // VALUE ENGINEER
   // Use Reserve Rights if weakened

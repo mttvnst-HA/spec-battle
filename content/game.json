@@ -9,5 +9,7 @@
   "healRange": [
     28,
     45
-  ]
+  ],
+  "counterMultiplier": 1.3,
+  "aiCounterBias": 0.7
 }

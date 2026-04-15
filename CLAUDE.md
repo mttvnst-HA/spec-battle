@@ -76,6 +76,38 @@ This game is set in the world of NAVFAC (Naval Facilities Engineering Systems Co
 - Engineers do NOT submit RFIs. RFIs are a contractor weapon.
 - The word "SHALL" in federal specs is a mandatory obligation, not a suggestion
 
+## Dialog system
+
+Runtime dialog is context-aware. Each `move.quotes` object has three kinds of bucket:
+- `default` (required) — fallback quote pool.
+- `opening` (optional) — used on a character's first move of the game (their `*LastMove` is still null).
+- `vs_<OPPONENT_MOVE>` (optional, spaces and hyphens → underscores, case preserved) — used when the opponent's last move matches.
+
+`src/game/dialog.js` exports `pickDialog({ attackerSide, move, opponentLastMove, isOpening })` which resolves the priority `opening > vs_<opponent> > default`. Content-loader normalizes legacy flat-array shape to `{ default: [...] }` on load.
+
+### Canonical counter pairings
+
+`src/game/counters.js` exports `COUNTER_ROUTING` — 13 `(initiator, counterer, counterMove)` triples. When `isCounter()` matches during `resolveMove`:
+- `calculateDamage` multiplies by `GAME.counterMultiplier` (default 1.3) before crit / defender status.
+- `rollStatusEffect` bypasses the random roll and guarantees the move's stun/slow/weaken status (no-op for heal/defense/null).
+- A `⚔️ COUNTER!` log line is prepended.
+- The dialog selected is pulled from the `vs_<initiator>` bucket.
+
+Reducer state carries `engLastMove` and `conLastMove` (both `string | null`, cleared by RESET). Stunned-skip branches intentionally do NOT update these — if you didn't act, you don't open a counter window.
+
+`pickAIMove` includes a top-priority counter rule: if `engLastMove` matches a canonical initiator for the contractor side AND contractor can afford the counter move's MP, play it with probability `GAME.aiCounterBias` (default 0.7).
+
+### Authoring pipeline
+
+Dev-time only, under `scripts/dialog-author/`:
+- `research.js` → produces `docs/dialog-source-material.md` (committed once curated; not yet in the repo as of D1 ship).
+- `roleplay.js` → one multi-turn in-character session → `scratch/dialog-transcripts/session-<ts>.json` (gitignored).
+- `mine.js` → aggregates transcripts → `scratch/dialog-candidates.json` (gitignored).
+- Human curation → curated lines moved into `content/quotes/*.json`.
+- `coverage.js` → reports `vs_*` bucket populate state. Use to target thin areas in subsequent role-play runs.
+
+All four scripts use `src/tune/claudeTransport.js` for Claude CLI calls. `TUNE_CLAUDE_BIN` / `TUNE_MODEL` / `TUNE_TIMEOUT_MS` env vars apply the same way as for the tuning harness. No runtime LLM — the curated static JSON is the shipping artifact.
+
 ## Content Pipeline
 
 All game content (quotes, moves, intros, game over text) lives in `content/` as editable JSON. See `content/README.md` for schemas and contribution guide.
