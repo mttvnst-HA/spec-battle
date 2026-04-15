@@ -1,8 +1,8 @@
 export const ENGINEER_PIXELS = [
-  "_____ddd_____",
-  "____ddddd____",
-  "___ddddddd___",
-  "___ddddddd___",
+  "_____hhh_____",
+  "____hhhhh____",
+  "___hhhhhhh___",
+  "___hdddddh___",
   "___dBdddBd___",
   "___ddddddd___",
   "___eddfdde___",
@@ -45,7 +45,7 @@ export const CONTRACTOR_PIXELS = [
 ];
 
 export const PIXEL_COLORS = {
-  d: "#e8b87a", e: "#d4a06a", f: "#c4756a", B: "#222222",
+  d: "#e8b87a", e: "#d4a06a", f: "#c4756a", h: "#c8a050", B: "#222222",
   w: "#f0f0f0", b: "#111111", k: "#333344", y: "#f0c820",
   o: "#e8b87a", O: "#dd7722", S: "#cccc00", _: "transparent",
 };
