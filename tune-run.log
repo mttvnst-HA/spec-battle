@@ -27,3 +27,8 @@ warning: in the working copy of 'content/moves/contractor.json', LF will be repl
 warning: in the working copy of 'content/moves/engineer.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'tune-run.log', LF will be replaced by CRLF the next time Git touches it
 [tune] iter 6: Lower REJECT SUBMITTAL dmg — free 0-MP move used 32% of turns, primary DPS source
+warning: in the working copy of 'content/game.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'content/moves/contractor.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'content/moves/engineer.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tune-run.log', LF will be replaced by CRLF the next time Git touches it
+[tune] iter 7: Lower REJECT SUBMITTAL further — still 32% usage post-nerf, remains top DPS source
