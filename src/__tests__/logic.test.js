@@ -230,3 +230,58 @@ describe("resolveMove dialog routing", () => {
     expect(quoteLine.text).toMatch(/vs-rfi quote [ab]/);
   });
 });
+
+describe("resolveMove counter detection", () => {
+  it("applies counter bonus and emits ⚔️ COUNTER log line on canonical counter", () => {
+    seedRng(123);
+    const invokeShall = {
+      name: "INVOKE SHALL", emoji: "⚖️", desc: "", dmg: [30, 30], mp: 20, effect: "stun",
+      quotes: { default: ["default shall"], vs_OR_EQUAL_GAMBIT: ["SHALL-slam line"] },
+    };
+    const state = {
+      engHp: 140, engMp: 70, conHp: 150, conMp: 60,
+      engStatus: null, conStatus: null, log: [],
+      engShake: 0, conShake: 0, engFlash: 0, conFlash: 0,
+      engLastMove: null, conLastMove: "OR-EQUAL GAMBIT",
+    };
+    const attacker = { name: "ENGINEER", maxHp: 140, maxMp: 70, mpRegen: 4 };
+    const s = resolveMove(state, attacker, invokeShall, true, "OR-EQUAL GAMBIT");
+
+    // ⚔️ COUNTER line exists
+    const counterLine = s.log.find((e) => e.text.startsWith("⚔️ COUNTER"));
+    expect(counterLine).toBeDefined();
+    expect(counterLine.text).toContain("INVOKE SHALL");
+    expect(counterLine.text).toContain("OR-EQUAL GAMBIT");
+
+    // Damage applied counter multiplier — damage is Math.floor(30 × 1.3 × possibly crit)
+    const dmgLine = s.log.find((e) => e.text.match(/damage!/));
+    const dmgMatch = dmgLine.text.match(/(\d+) damage/);
+    const dmg = parseInt(dmgMatch[1], 10);
+    expect(dmg).toBeGreaterThanOrEqual(Math.floor(30 * 1.3));
+
+    // Stun guaranteed
+    expect(s.conStatus).toBe(STATUS.STUNNED);
+
+    // Quote from vs bucket
+    const quoteLine = s.log.find((e) => e.text.includes("SHALL-slam"));
+    expect(quoteLine).toBeDefined();
+  });
+
+  it("does NOT emit counter line when move is not a counter", () => {
+    seedRng(5);
+    const move = {
+      name: "INVOKE SHALL", emoji: "⚖️", desc: "", dmg: [30, 30], mp: 20, effect: "stun",
+      quotes: { default: ["default shall"] },
+    };
+    const state = {
+      engHp: 140, engMp: 70, conHp: 150, conMp: 60,
+      engStatus: null, conStatus: null, log: [],
+      engShake: 0, conShake: 0, engFlash: 0, conFlash: 0,
+      engLastMove: null, conLastMove: "SUBMIT RFI",  // not a counter target
+    };
+    const attacker = { name: "ENGINEER", maxHp: 140, maxMp: 70, mpRegen: 4 };
+    const s = resolveMove(state, attacker, move, true, "SUBMIT RFI");
+    const counterLine = s.log.find((e) => e.text.startsWith("⚔️ COUNTER"));
+    expect(counterLine).toBeUndefined();
+  });
+});

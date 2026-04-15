@@ -2,6 +2,7 @@ import { C, STATUS, GAME, clamp } from "../constants.js";
 import { random, rand, pick } from "./rng.js";
 import { CONTRACTOR } from "../data/characters.js";
 import { pickDialog } from "./dialog.js";
+import { isCounter as checkCounter, getCounterEntry } from "./counters.js";
 
 export function calculateDamage(move, defenderStatus, isCounter = false) {
   let dmg = rand(move.dmg[0], move.dmg[1]);
@@ -28,13 +29,22 @@ export function rollStatusEffect(move, isCounter = false) {
 
 export function resolveMove(state, attacker, move, isPlayer, opponentLastMove = null) {
   let s = { ...state };
-  const isOpening = isPlayer ? state.engLastMove == null : state.conLastMove == null;
   const attackerSide = isPlayer ? "engineer" : "contractor";
+  const isOpening = isPlayer ? state.engLastMove == null : state.conLastMove == null;
+  const isCounter = checkCounter(attackerSide, move.name, opponentLastMove);
   const quote = pickDialog({ attackerSide, move, opponentLastMove, isOpening });
   let newLog = [
     { text: `${attacker.name} uses ${move.emoji} ${move.name}!`, color: C.bright },
     { text: `  "${quote}"`, color: C.white },
   ];
+
+  if (isCounter) {
+    const entry = getCounterEntry(attackerSide, move.name, opponentLastMove);
+    newLog.unshift({
+      text: `⚔️ COUNTER! ${move.name} vs ${entry.initiator}`,
+      color: C.yellow,
+    });
+  }
 
   if (isPlayer) { s.engMp = Math.max(0, s.engMp - move.mp); if (move.effect !== "heal") s.engFlash += 1; }
   else { s.conMp = Math.max(0, s.conMp - move.mp); if (move.effect !== "heal") s.conFlash += 1; }
@@ -57,14 +67,14 @@ export function resolveMove(state, attacker, move, isPlayer, opponentLastMove = 
 
   // Damage calc (before applying offensive status effects so DEF+ isn't overwritten)
   const defenderStatus = isPlayer ? s.conStatus : s.engStatus;
-  const { dmg, crit } = calculateDamage(move, defenderStatus);
+  const { dmg, crit } = calculateDamage(move, defenderStatus, isCounter);
 
   if (isPlayer) { s.conHp = Math.max(0, s.conHp - dmg); s.conShake += 1; }
   else { s.engHp = Math.max(0, s.engHp - dmg); s.engShake += 1; }
   newLog.push({ text: `  ${crit ? "CRITICAL HIT! " : ""}${dmg} damage!`, color: crit ? C.yellow : C.red });
 
   // Status effects applied AFTER damage
-  const newStatus = rollStatusEffect(move);
+  const newStatus = rollStatusEffect(move, isCounter);
   if (newStatus) {
     if (isPlayer) s.conStatus = newStatus; else s.engStatus = newStatus;
     const statusMessages = {
