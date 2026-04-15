@@ -17,3 +17,8 @@ warning: in the working copy of 'content/moves/contractor.json', LF will be repl
 warning: in the working copy of 'content/moves/engineer.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'tune-run.log', LF will be replaced by CRLF the next time Git touches it
 [tune] iter 4: Lower CURE NOTICE dmg — highest-dmg move in game with stun, drives random-vs-random dominance
+warning: in the working copy of 'content/game.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'content/moves/contractor.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'content/moves/engineer.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tune-run.log', LF will be replaced by CRLF the next time Git touches it
+[tune] iter 5: Lower INVOKE SHALL dmg — stun+high-dmg at cheap 20MP; two engineer stun moves drive dominance
