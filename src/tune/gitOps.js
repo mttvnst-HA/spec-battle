@@ -8,7 +8,13 @@ const defaultExec = (cmd) => execSync(cmd, { encoding: "utf-8" });
 export function makeGit({ exec = defaultExec } = {}) {
   return {
     commitAll(message) {
-      exec("git add -A");
+      // Scoped to `content/` — the only path the tune proposer mutates
+      // (via writeBundle → applyProposal). Previously `git add -A`, which
+      // accidentally swept up stray files like `tune-run.log` when a run
+      // was piped through tee. The scoped form is sufficient for every
+      // accepted bundle and avoids polluting the commit with incidental
+      // working-tree files.
+      exec("git add content/");
       const escaped = message
         .replace(/\\/g, "\\\\")
         .replace(/"/g, '\\"')

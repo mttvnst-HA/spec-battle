@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { makeGit } from "../tune/gitOps.js";
 
 describe("makeGit", () => {
-  it("commitAll runs 'git add -A' then 'git commit -m <msg>' via injected exec", () => {
+  it("commitAll runs 'git add content/' then 'git commit -m <msg>' via injected exec", () => {
     const calls = [];
     const exec = vi.fn((cmd) => { calls.push(cmd); return ""; });
     const git = makeGit({ exec });
@@ -10,9 +10,24 @@ describe("makeGit", () => {
     git.commitAll("tune(iter-1): nerf REJECT SUBMITTAL dmg");
 
     expect(calls).toHaveLength(2);
-    expect(calls[0]).toBe("git add -A");
+    expect(calls[0]).toBe("git add content/");
     expect(calls[1]).toMatch(/^git commit -m /);
     expect(calls[1]).toContain("tune(iter-1): nerf REJECT SUBMITTAL dmg");
+  });
+
+  it("does NOT use 'git add -A' (which would sweep up stray logfiles, scratch, etc.)", () => {
+    // Guardrail against regression. Observed 2026-04-15: a tune:llm run
+    // piped through `tee tune-run.log` landed that logfile inside several
+    // iter-N commits because `git add -A` captured everything. Scoping to
+    // `content/` is the only thing the tune proposer mutates.
+    const calls = [];
+    const exec = vi.fn((cmd) => { calls.push(cmd); return ""; });
+    const git = makeGit({ exec });
+
+    git.commitAll("tune(iter-1): anything");
+
+    expect(calls[0]).not.toMatch(/-A\b/);
+    expect(calls[0]).not.toMatch(/^git add \./);
   });
 
   it("escapes double quotes inside the commit message", () => {
