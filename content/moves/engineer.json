@@ -15,8 +15,8 @@
     "emoji": "🖊️",
     "desc": "Mark up the submittal in blood red",
     "dmg": [
-      28,
-      40
+      27,
+      39
     ],
     "mp": 15,
     "effect": null
@@ -26,8 +26,8 @@
     "emoji": "⚖️",
     "desc": "SHALL is mandatory, not optional",
     "dmg": [
-      31,
-      47
+      30,
+      46
     ],
     "mp": 20,
     "effect": "stun"
