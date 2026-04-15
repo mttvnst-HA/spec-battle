@@ -6,6 +6,9 @@ balance-report.json
 tuning-summary.md
 balance-baseline.next.json
 
+# Local Claude Code tooling state (settings, launch config)
+.claude/
+
 # Dialog authoring scratch
 scratch/
 
