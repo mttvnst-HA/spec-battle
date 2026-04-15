@@ -20,12 +20,18 @@ ROADMAP.md               -- Autonomous development roadmap (Phase 1 foundation +
 plans/                   -- Implementation plans, one per roadmap phase
 scripts/
   simulate.js            -- CLI: runs N sim games, writes balance-report.json or balance-baseline.json
+  tune.js                -- CLI: heuristic or LLM tuning loop (see Tuning harness section)
+  tune-sim.js            -- Fresh-process sim driver spawned by tune.js (Phase 2.2e; see CLAUDE.md)
+  dialog-author/         -- Dev-time dialog authoring scripts (research, roleplay, mine, fill-silly, coverage)
+docs/
+  dialog-source-material.md  -- Distilled NAVFAC/FAR corpus seeding dialog-author prompts
 balance-baseline.json    -- Committed baseline; regression test diffs against this
 content/                 -- Game content as editable JSON (see content/README.md)
   quotes/engineer.json   -- Engineer move quotes, keyed by move name
   quotes/contractor.json -- Contractor move quotes
   moves/engineer.json    -- Engineer move definitions (stats, effects)
   moves/contractor.json  -- Contractor move definitions
+  game.json              -- GAME balance constants (critRate, mpRegen, counterMultiplier, etc.)
   intros.json            -- Randomized intro sequences
   game-over.json         -- Victory/defeat text pools
 src/
@@ -39,10 +45,21 @@ src/
     logic.js           -- calculateDamage(), rollStatusEffect(), resolveMove(), pickAIMove()
     reducer.js         -- Game reducer (PLAYER_MOVE, PLAYER_STUNNED, ENEMY_MOVE, RESET)
     rng.js             -- Seedable xorshift32; delegates to Math.random() when unseeded
+    dialog.js          -- pickDialog() — opening > vs_<opponent> > default bucket resolution
+    counters.js        -- COUNTER_ROUTING triples + isCounter() helper
   sim/
     policies.js        -- randomPolicy + aiPolicy (wraps pickAIMove) for simulated play
     runGame.js         -- Drives one game via reducer with two policies + seed
     runBatch.js        -- Aggregates N games into a BalanceReport
+    runAveragedBatch.js -- Multi-seed averaged BalanceReport (tune-only, K=3 chunks)
+  tune/
+    loop.js            -- Orchestrator: propose → test → sim → accept/revert; convergence + budget + kill-switch
+    proposer.js        -- Heuristic 6-rule round-robin library (default proposer)
+    llmProposer.js     -- Claude Code CLI proposer; buildPrompt + parseBundle
+    claudeTransport.js -- execFileSync wrapper around `claude -p`; timeout + error surfacing
+    applyProposal.js   -- writeBundle / revertBundle against content/*.json; transactional
+    convergence.js     -- isConverged (band check), isImprovement (strict-< worst-distance gate)
+    gitOps.js          -- git add + git commit wrappers for accepted bundles
   components/
     PixelSprite.jsx    -- SVG sprite renderer with shake/flash animations
     StatBox.jsx        -- HP/MP bars + character stat display
@@ -133,7 +150,8 @@ npm run build         # Production build to dist/
 npm test              # Run all tests (vitest)
 npm run sim              # Run 1000 games per matchup, write balance-report.json
 npm run sim:update-baseline  # Run same, write balance-baseline.json (commit it!)
-npm run tune             # Heuristic tuning loop (up to 50 iters / 15 min)
+npm run tune             # Heuristic tuning loop (up to 30 iters / 45 min)
+npm run tune:llm         # LLM-driven tuning loop (same budget; see Tuning harness > LLM proposer)
 npm run tune:dry-run     # 2-iteration smoke test — no file writes, no git ops
 npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 ```
