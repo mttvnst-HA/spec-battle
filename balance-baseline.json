@@ -4,26 +4,26 @@
       "matchup": "random-vs-random",
       "startSeed": 1,
       "count": 1000,
-      "engineerWinRate": 0.86,
-      "contractorWinRate": 0.14,
+      "engineerWinRate": 0.563,
+      "contractorWinRate": 0.437,
       "drawRate": 0,
-      "avgTurns": 12.07,
+      "avgTurns": 13.41,
       "moveFrequency": {
         "engineer": {
-          "REJECT SUBMITTAL": 0.3314,
-          "CITE UFC": 0.1451,
-          "INVOKE SHALL": 0.1242,
-          "RED-LINE SPEC": 0.1415,
-          "CURE NOTICE": 0.1107,
+          "REJECT SUBMITTAL": 0.3438,
+          "CITE UFC": 0.148,
+          "INVOKE SHALL": 0.1179,
+          "RED-LINE SPEC": 0.1393,
+          "CURE NOTICE": 0.1039,
           "ISSUE NCR": 0.1471
         },
         "contractor": {
-          "SCHEDULE DELAY": 0.1588,
-          "SUBMIT RFI": 0.1876,
-          "RESERVE RIGHTS": 0.1725,
-          "CLAIM DSC": 0.1537,
-          "VALUE ENGINEER": 0.1616,
-          "OR-EQUAL GAMBIT": 0.1657
+          "SCHEDULE DELAY": 0.1577,
+          "SUBMIT RFI": 0.1958,
+          "RESERVE RIGHTS": 0.1732,
+          "CLAIM DSC": 0.1538,
+          "VALUE ENGINEER": 0.1579,
+          "OR-EQUAL GAMBIT": 0.1615
         }
       }
     },
@@ -31,26 +31,26 @@
       "matchup": "random-vs-ai",
       "startSeed": 1,
       "count": 1000,
-      "engineerWinRate": 0.836,
-      "contractorWinRate": 0.164,
+      "engineerWinRate": 0.496,
+      "contractorWinRate": 0.504,
       "drawRate": 0,
-      "avgTurns": 13.88,
+      "avgTurns": 15.16,
       "moveFrequency": {
         "engineer": {
-          "REJECT SUBMITTAL": 0.3428,
-          "INVOKE SHALL": 0.1223,
-          "ISSUE NCR": 0.1469,
-          "RED-LINE SPEC": 0.1342,
-          "CITE UFC": 0.1506,
-          "CURE NOTICE": 0.1032
+          "REJECT SUBMITTAL": 0.3597,
+          "INVOKE SHALL": 0.1147,
+          "ISSUE NCR": 0.1468,
+          "RED-LINE SPEC": 0.129,
+          "CITE UFC": 0.1531,
+          "CURE NOTICE": 0.0967
         },
         "contractor": {
-          "VALUE ENGINEER": 0.2995,
-          "SUBMIT RFI": 0.1429,
-          "SCHEDULE DELAY": 0.1425,
-          "OR-EQUAL GAMBIT": 0.1234,
-          "CLAIM DSC": 0.1375,
-          "RESERVE RIGHTS": 0.1543
+          "VALUE ENGINEER": 0.2812,
+          "SUBMIT RFI": 0.1616,
+          "SCHEDULE DELAY": 0.1422,
+          "OR-EQUAL GAMBIT": 0.12,
+          "RESERVE RIGHTS": 0.1624,
+          "CLAIM DSC": 0.1325
         }
       }
     }

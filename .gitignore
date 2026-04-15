@@ -5,6 +5,7 @@ balance-report.json
 .tuning-abort
 tuning-summary.md
 balance-baseline.next.json
+tune-run.log
 
 # Local Claude Code tooling state (settings, launch config)
 .claude/
