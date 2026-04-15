@@ -6,17 +6,17 @@ Set in the world of federal construction, the humor comes from real adversarial 
 
 ## Prerequisites
 
-You need **Node.js** (version 18 or newer) installed on your computer. Node.js includes **npm**, the package manager used to install dependencies and run the app.
+You need **Node.js** (version 22 or newer) installed on your computer. Node.js includes **npm**, the package manager used to install dependencies and run the app.
 
 1. Go to [https://nodejs.org](https://nodejs.org)
-2. Download the **LTS** (Long Term Support) version for your operating system
+2. Download the **LTS** (Long Term Support) version for your operating system — any current LTS is v22+
 3. Run the installer and follow the prompts (default settings are fine)
 4. Verify the installation by opening a terminal and running:
    ```bash
    node --version
    npm --version
    ```
-   Both commands should print a version number.
+   The Node version should be `v22.x.x` or higher. Older versions (v18, v20) will fail on JSON import attributes.
 
 ## Install & Run
 
@@ -35,16 +35,26 @@ All game content lives in the `content/` directory as simple JSON files. You can
 
 ### Add a battle quote
 
-Edit `content/quotes/engineer.json` or `content/quotes/contractor.json`. Find the move name and add a string to its array:
+Edit `content/quotes/engineer.json` or `content/quotes/contractor.json`. Each move has a set of named buckets — pick the one that fits your quote and add a string:
 
 ```json
 {
-  "REJECT SUBMITTAL": [
-    "...existing quotes...",
-    "Your new quote goes here."
-  ]
+  "REJECT SUBMITTAL": {
+    "default": [
+      "...existing fallback quotes — used when nothing more specific fires...",
+      "Your new quote goes here."
+    ],
+    "opening": [
+      "...quotes used on the very first move of the match..."
+    ],
+    "vs_SUBMIT_RFI": [
+      "...quotes used when the opponent's previous move was SUBMIT RFI..."
+    ]
+  }
 }
 ```
+
+The runtime picks a bucket by priority: `opening` (first move of the game) > `vs_<OPPONENT_MOVE>` (specific counter) > `default` (fallback). The `default` bucket is required; the others are optional. See [`content/README.md`](content/README.md) for the full schema and the list of canonical counter pairings.
 
 ### Add an intro sequence
 
