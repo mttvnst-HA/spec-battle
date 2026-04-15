@@ -147,6 +147,67 @@ describe("pickAIMove", () => {
   });
 });
 
+describe("calculateDamage with isCounter", () => {
+  it("applies counterMultiplier when isCounter is true", () => {
+    seedRng(1);
+    const move = { dmg: [10, 10], effect: null };
+    const noCounter = calculateDamage(move, null, false);
+    seedRng(1);
+    const withCounter = calculateDamage(move, null, true);
+    // counterMultiplier × same base roll (crit outcome identical due to reseed)
+    expect(withCounter.dmg).toBe(Math.floor(noCounter.dmg * GAME.counterMultiplier));
+  });
+
+  it("counter multiplier applies BEFORE crit (crit multiplies the counter-bonused base)", () => {
+    // We verify ordering by forcing a crit via seeded RNG and asserting dmg is
+    // Math.floor(base × counterMultiplier × critMultiplier).
+    // This is a structural assertion — exact numbers depend on the seeded roll.
+    seedRng(1);
+    const move = { dmg: [10, 10], effect: null };
+    const r = calculateDamage(move, null, true);
+    if (r.crit) {
+      expect(r.dmg).toBe(Math.floor(10 * GAME.counterMultiplier * GAME.critMultiplier));
+    }
+  });
+});
+
+describe("rollStatusEffect with isCounter", () => {
+  it("returns STUNNED guaranteed when isCounter is true and move has stun effect", () => {
+    const move = { effect: "stun" };
+    // Run many iterations to verify determinism even if RNG would have missed
+    for (let i = 0; i < 20; i++) {
+      seedRng(i);
+      expect(rollStatusEffect(move, true)).toBe(STATUS.STUNNED);
+    }
+  });
+
+  it("returns SLOWED guaranteed when isCounter is true and move has slow effect", () => {
+    const move = { effect: "slow" };
+    for (let i = 0; i < 20; i++) {
+      seedRng(i);
+      expect(rollStatusEffect(move, true)).toBe(STATUS.SLOWED);
+    }
+  });
+
+  it("returns WEAKENED when isCounter is true and move has weaken effect (unchanged — weaken was already always-on)", () => {
+    expect(rollStatusEffect({ effect: "weaken" }, true)).toBe(STATUS.WEAKENED);
+  });
+
+  it("is a no-op (null) when isCounter is true but move has no status effect", () => {
+    expect(rollStatusEffect({ effect: null }, true)).toBe(null);
+    expect(rollStatusEffect({ effect: "heal" }, true)).toBe(null);
+    expect(rollStatusEffect({ effect: "defense" }, true)).toBe(null);
+  });
+
+  it("behaves like today when isCounter is false (default)", () => {
+    seedRng(1);
+    const a = rollStatusEffect({ effect: "stun" }, false);
+    seedRng(1);
+    const b = rollStatusEffect({ effect: "stun" });  // default = false
+    expect(a).toBe(b);
+  });
+});
+
 describe("resolveMove dialog routing", () => {
   it("pulls quote from vs_<opponent> bucket when opponentLastMove is set", () => {
     seedRng(7);

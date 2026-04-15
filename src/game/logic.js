@@ -3,8 +3,9 @@ import { random, rand, pick } from "./rng.js";
 import { CONTRACTOR } from "../data/characters.js";
 import { pickDialog } from "./dialog.js";
 
-export function calculateDamage(move, defenderStatus) {
+export function calculateDamage(move, defenderStatus, isCounter = false) {
   let dmg = rand(move.dmg[0], move.dmg[1]);
+  if (isCounter) dmg = Math.floor(dmg * GAME.counterMultiplier);
   const crit = random() < GAME.critRate;
   if (crit) dmg = Math.floor(dmg * GAME.critMultiplier);
   if (defenderStatus === STATUS.DEF_PLUS) dmg = Math.floor(dmg * GAME.defMultiplier);
@@ -12,10 +13,16 @@ export function calculateDamage(move, defenderStatus) {
   return { dmg, crit };
 }
 
-export function rollStatusEffect(move) {
+export function rollStatusEffect(move, isCounter = false) {
   if (move.effect === "weaken") return STATUS.WEAKENED;
-  if (move.effect === "stun" && random() < GAME.stunChance) return STATUS.STUNNED;
-  if (move.effect === "slow" && random() < GAME.slowChance) return STATUS.SLOWED;
+  if (move.effect === "stun") {
+    if (isCounter) return STATUS.STUNNED;
+    if (random() < GAME.stunChance) return STATUS.STUNNED;
+  }
+  if (move.effect === "slow") {
+    if (isCounter) return STATUS.SLOWED;
+    if (random() < GAME.slowChance) return STATUS.SLOWED;
+  }
   return null;
 }
 
