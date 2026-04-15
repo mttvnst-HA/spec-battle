@@ -1,7 +1,8 @@
 # Autonomous Development Roadmap
 
 **Created:** 2026-04-13
-**Branch:** `iterative-development`
+**Last updated:** 2026-04-15
+**Branch:** all work merged to `master`
 
 ## End Goal
 
@@ -12,7 +13,7 @@ Claude Code can run an autonomous development loop on spec-battle that — start
 1. A single command (e.g. `npm run autonomous` or a `/loop` invocation) runs end-to-end: proposes changes → runs tests + sim → commits on pass → iterates until converged or budget hit.
 2. `npm run sim` produces a deterministic `balance-report.json` from N seeded games.
 3. `npm test` includes balance-regression tests (baseline-delta based) that fail fast on drift.
-4. All 208 existing tests stay green throughout. Kill-switch tested before any unattended run.
+4. All existing tests stay green throughout. Kill-switch tested before any unattended run.
 5. After a run, a human can read the branch diff + final report and decide to merge, revise, or discard.
 
 ### Out of scope for the whole roadmap
@@ -29,7 +30,7 @@ Claude Code can run an autonomous development loop on spec-battle that — start
 - **`balance-report.json` is gitignored; `balance-baseline.json` is tracked.** Reports are artifacts, baselines are contracts.
 - **RNG injection via seedable module.** `src/game/rng.js` exports `seed`, `random`, `rand`, `pick`. No signature changes in game logic.
 
-## Phase 1 — Foundation
+## Phase 1 — Foundation [COMPLETE]
 
 **Goal:** Deterministic, seeded simulation of spec-battle with a recorded balance baseline and regression tests that fail on drift.
 
@@ -70,13 +71,21 @@ None added.
 - LLM-as-player
 - CI integration beyond what `npm test` already does
 
-## Phase 2 — Autonomous tuning loop
+## Phase 2 — Autonomous tuning loop [COMPLETE]
 
 **Goal:** A single command runs a Ralph-style loop that proposes tweaks to `GAME` constants and per-move stats, verifies each tweak against tests + sim, commits accepted changes, and stops at convergence / budget / kill-switch. The committed baseline is never touched by the loop; a human reviews the resulting branch and runs `npm run sim:update-baseline` to accept.
 
 Split into two sub-phases. Phase 2.1 ships first; Phase 2.2 is unlocked only if 2.1's heuristic proposer plateaus short of the convergence band.
 
-### Phase 2.1 — Heuristic proposer
+### Phase 2 outcome (2026-04-15)
+
+A 23-iteration LLM tune run from clean master accepted 20 bundles, bringing worst-matchup distance from 36.93pp → 7.73pp. Current baseline (committed after the run):
+- **Random-vs-Random:** Engineer 56.3% / Contractor 43.7% (6.3pp from 50%)
+- **Random-vs-AI:** Engineer 49.6% / Contractor 50.4% (0.4pp from 50% — nearly perfect)
+
+The [45%, 55%] convergence band is satisfied for Random-vs-AI but Random-vs-Random sits just outside at 56.3%. The run exited `exhausted` (ETIMEDOUT after retry) at iteration 23, with 3 consecutive `not-improvement` outcomes — the last three candidates (worstDistanceCandidate 5.50, 4.17, 6.10) were all improvements over the 7.73 baseline but couldn't pass the strict `isImprovement` gate because they regressed the other matchup by >2pp. Further tuning is diminishing-returns — a future Phase 3 BO sweep or a relaxed `isImprovement` gate could close the remaining 1.3pp gap.
+
+### Phase 2.1 — Heuristic proposer [COMPLETE]
 
 **Goal:** Pure-JS rule-library proposer closes the balance gap (current 86.5% / 71.5% engineer) enough to hit the target band, or falsifies itself quickly and informs 2.2.
 
@@ -140,7 +149,7 @@ The 5-iter smoke accepted **zero** proposals; worst-matchup distance stayed at 3
 
 Phase 2.2a addresses gates 1 and 3 directly as mechanical prep. Phase 2.2b addresses gate 2 by shipping bundle-shaped proposals — a single LLM-authored bundle can move multiple levers coherently in one iteration.
 
-### Phase 2.2a — Prep (test relaxation + JSON normalization)
+### Phase 2.2a — Prep (test relaxation + JSON normalization) [COMPLETE]
 
 **Goal:** Remove the two mechanical blockers so 2.2b starts from a clean green baseline. No LLM work. Mechanical only.
 
@@ -165,7 +174,7 @@ Phase 2.2a addresses gates 1 and 3 directly as mechanical prep. Phase 2.2b addre
 - Any change to `balance-baseline.json`
 - Any change to the heuristic proposer
 
-### Phase 2.2b — LLM proposer
+### Phase 2.2b — LLM proposer [COMPLETE]
 
 **Goal:** Ship a Claude Code CLI subprocess proposer that emits bundled `ProposalBundle` mutations; wire it into the existing loop behind a selectable proposer flag; keep the heuristic proposer as the default path.
 
@@ -222,7 +231,7 @@ None. Claude Code CLI is assumed to be installed and authenticated on the machin
 - If CLI output shape drifts on a `claude` update, does `parseBundle` need a fallback extractor? (Start with code-fence-stripping + first-JSON-block; iterate on evidence.)
 - Should the prompt include prior *accepted* bundles' deltas on `balance-report` to let the LLM learn which levers actually move the sim? (Parked — follow-up iteration once we have run data.)
 
-### Phase 2.2c — Sim noise floor + observability
+### Phase 2.2c — Sim noise floor + observability [COMPLETE]
 
 **Goal:** Close the sim-noise-vs-step-size ceiling revealed by the Phase 2.2b production LLM tune. Increase per-matchup game count to push the measurement floor below the step-size signal; add `worstDistanceCandidate` to history entries so "close miss" and "way off" are distinguishable in post-run analysis; surface transport errors in `tuning-summary.md` so `exhausted` exits are interpretable. Leaves `isImprovement` strict — the strict-inequality gate is correct; the right fix is measurement, not the gate.
 
@@ -283,7 +292,7 @@ None.
 - The CLI's `exhausted` behavior after ~8 calls — rate limit, quota, session timeout, or transient? AC4 will make this visible in summary output. If it's a per-minute rate limit, a fixed inter-iteration delay may suffice.
 - Does `balance-regression.test.js`'s ±0.5pp tolerance need tightening once the baseline is regenerated at 1000 games? (Tighter sim should reduce drift; tolerance could naturally shrink.)
 
-### Phase 2.2d — Multi-seed averaged sim
+### Phase 2.2d — Multi-seed averaged sim [COMPLETE]
 
 **Goal:** Close the remaining signal-to-noise gap revealed by the Phase 2.2c AC5 production runs. Average `runBatch` across K=3 disjoint-seed chunks in the tuning path so per-iteration stderr on per-matchup winrate drops from ~1.58pp to ~0.91pp — below the smallest-step signal. Measurement fix; no proposer-logic, step-size, or `isImprovement` changes.
 
@@ -342,7 +351,7 @@ None.
 - If `exhausted` / ETIMEDOUT recurs, is Phase 2.2e a transport-timeout bump + retry, or a deeper investigation into CLI hang causes? (Decide after seeing the 2.2d run.)
 - Does the multi-seed averaging warrant an eventual baseline regeneration at K=3 for a tighter regression-test contract? (Decide after 2.2d acceptance.)
 
-### Phase 2.2e — Subprocess sim boundary (ESM JSON cache fix)
+### Phase 2.2e — Subprocess sim boundary (ESM JSON cache fix) [COMPLETE]
 
 **Goal:** Fix the root cause of every `not-improvement` outcome observed in Phases 2.2b, 2.2c, and 2.2d — the ESM JSON import cache never re-reads `content/*.json` after module-init, so in-process `runSim()` calls after `writeBundle` silently measure the pre-mutation baseline. Ship a subprocess sim driver that guarantees every iteration reads fresh content, add tests that lock the behavior in, and retcon the misattributions in prior phase notes.
 
@@ -395,7 +404,7 @@ None.
 - **Should `balance-regression.test.js` also spawn a subprocess?** Parked. It runs once in CI against a committed baseline, not mid-process after a mutation. The in-process import is safe there.
 - **Does the heuristic proposer need the subprocess boundary too?** Yes — the harness calls `runSim()` the same way regardless of proposer. Phase 2.2e fix applies universally; silently blocked heuristic runs from Phase 2.1 onward would have seen the same flat-distance symptom. The heuristic proposer's 1-of-5-iteration acceptance rate in the Phase 2.1 smoke run was misleading — probably driven by residual baseline-edge effects rather than real acceptance.
 
-### Phase 2.2f — Transport timeout + bounded retry
+### Phase 2.2f — Transport timeout + bounded retry [COMPLETE]
 
 **Goal:** Stop spawnSync ETIMEDOUT from prematurely exhausting LLM tune runs. Production runs in 2.2c and 2.2d both exited `"exhausted"` on a single unlucky timeout (iter 7 and iter 4), with no mechanism to recover. Make the transport tolerant to one cold-start slow call without bloating the outer loop.
 
