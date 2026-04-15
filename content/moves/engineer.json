@@ -26,8 +26,8 @@
     "emoji": "⚖️",
     "desc": "SHALL is mandatory, not optional",
     "dmg": [
-      29,
-      45
+      28,
+      44
     ],
     "mp": 20,
     "effect": "stun"
