@@ -226,7 +226,7 @@ describe("resolveMove dialog routing", () => {
       engLastMove: "CITE UFC", conLastMove: "SUBMIT RFI",
     };
     const s = resolveMove(state, attacker, move, true, "SUBMIT RFI");
-    const quoteLine = s.log.find((e) => e.text.startsWith("  \""));
+    const quoteLine = s.log.find((e) => e.text.startsWith("\""));
     expect(quoteLine.text).toMatch(/vs-rfi quote [ab]/);
   });
 });

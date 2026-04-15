@@ -71,7 +71,7 @@ describe("canonical counter integration", () => {
         const vsKeyForMove = "vs_" + entry.initiator.replace(/[ -]/g, "_");
         const expectedLines = counterMove.quotes[vsKeyForMove] || [];
         expect(expectedLines.length, `seed content missing at ${counterMove.name}.${vsKeyForMove}`).toBeGreaterThan(0);
-        const quoteLine = s.log.find((e) => e.text.startsWith("  \""));
+        const quoteLine = s.log.find((e) => e.text.startsWith("\""));
         expect(quoteLine).toBeDefined();
         const matched = expectedLines.some((line) => quoteLine.text.includes(line));
         expect(matched, `quote line '${quoteLine.text}' not from ${vsKeyForMove}`).toBe(true);
