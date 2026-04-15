@@ -228,6 +228,8 @@ None. Claude Code CLI is assumed to be installed and authenticated on the machin
 
 **Depends on:** Phase 2.2b shipped (PR #3 merged) + the `--llm` portability fix (PR #4).
 
+> **Phase 2.2e retcon (2026-04-15):** The "noise floor" diagnosis below was downstream of an ESM JSON import cache bug — `src/data/content-loader.js` and `src/constants.js` bind `content/*.json` at module-init and never re-read, so in-process `runSim()` calls after `writeBundle` measured the pre-mutation baseline regardless of what was written. The n=200 → n=1000 sim-size increase shipped in 2.2c was a real observability improvement but did not unblock acceptance — the sim was measuring the wrong state. See Phase 2.2e for root cause.
+
 #### Observed Phase 2.2b ceiling (2026-04-14 production run, 8 iterations, seed=1)
 
 Eight LLM-proposed bundles, increasingly sophisticated: global `stunChance` nerfs, cross-side rebalances, coordinated multi-lever tweaks of up to 5 targets. Every iteration: `not-improvement`. Worst distance pinned at 36.50pp (random-vs-random engineer winrate 86.5%) throughout. Tune exited `exhausted` at iteration 9 — likely CLI rate limit or session quota; `tuning-summary.md` did not surface the transport error, so the reason is currently indistinguishable from "CLI not installed" or "proposer legitimately returned null". That's an observability gap in its own right.
@@ -287,6 +289,8 @@ None.
 
 **Depends on:** Phase 2.2c shipped (PR #6 merged) + the LLM proposer counter-key fix (PR #9 merged).
 
+> **Phase 2.2e retcon (2026-04-15):** The K=3 averaging shipped in 2.2d is real signal-to-noise work, but 2.2d's flat `worstDistanceCandidate = 38.63` across 7 iterations was not a signal-detection failure — it was the ESM JSON cache bug below. The sim was measuring the unchanged baseline every iteration regardless of the disk mutation. Phase 2.2e's subprocess `runSim` is what actually unblocked acceptance (first accepted bundle: commit `2902d35`). K=3 averaging remains in place as a tighter gate for real signals going forward.
+
 #### Observed Phase 2.2c AC5 ceiling (2026-04-15 production runs, 2 runs × 3-6 iterations)
 
 Two fresh LLM tune runs from clean master on PR-#9-synced code: 9 LLM-proposed bundles total, 0 accepted. Every `not-improvement` bundle landed at `worstDistanceCandidate = 38.40` — the exact baseline worstDistance, to 2 decimal places. Not a single bundle budged the objective. Bundles were strategically diverse (dmg, stun, heal, crit/weaken multipliers, aiCounterBias-adjacent mutations). Both runs exited `exhausted` on `spawnSync claude.exe ETIMEDOUT` at iter 7 and iter 4 respectively.
@@ -337,6 +341,73 @@ None.
 - If K=3 is insufficient and runs still hit `worstDistanceCandidate ≈ 38.40`, is the next move K=5 or widening step sizes? (Decide after data.)
 - If `exhausted` / ETIMEDOUT recurs, is Phase 2.2e a transport-timeout bump + retry, or a deeper investigation into CLI hang causes? (Decide after seeing the 2.2d run.)
 - Does the multi-seed averaging warrant an eventual baseline regeneration at K=3 for a tighter regression-test contract? (Decide after 2.2d acceptance.)
+
+### Phase 2.2e — Subprocess sim boundary (ESM JSON cache fix)
+
+**Goal:** Fix the root cause of every `not-improvement` outcome observed in Phases 2.2b, 2.2c, and 2.2d — the ESM JSON import cache never re-reads `content/*.json` after module-init, so in-process `runSim()` calls after `writeBundle` silently measure the pre-mutation baseline. Ship a subprocess sim driver that guarantees every iteration reads fresh content, add tests that lock the behavior in, and retcon the misattributions in prior phase notes.
+
+**Depends on:** Phase 2.2d shipped.
+
+#### Observed root cause (2026-04-15 diagnostic)
+
+Phase 2.2d's first production run reproduced 2.2b and 2.2c's symptom exactly: 0 accepted bundles, `worstDistanceCandidate` pinned at the baseline 38.63 across 7 iterations. Statistically impossible even under binomial noise — correctly-directed mutations should shift the sample at least a few times in 7 tries. A probe script confirmed it: inside one Node process, mutating `content/moves/engineer.json` REJECT SUBMITTAL from `[16,24]` to `[100,100]` on disk produced *byte-identical* `runSim` output before and after the write. The sim was not responding to disk at all.
+
+Mechanism: `src/data/content-loader.js` (lines 5–10) uses `import engineerMovesJson from "../../content/moves/engineer.json" with { type: "json" }` and exports the resolved `ENGINEER`/`CONTRACTOR` as module-level `const`s. `src/constants.js` does the same for `GAME`. ESM JSON imports are bound once at module initialization and never re-read. `writeBundle` writes to disk successfully; the test gate passes because `runTests` spawns a fresh Node process; but the tune harness's own `runSim()` runs in the tune process, which still holds the module-init snapshot. Prior ROADMAP analyses attributed the plateau to noise floor (2.2c) and step-size vs. stderr (2.2d); those were real improvements to the measurement system, but they were downstream of a correctness bug in how the measurement was wired.
+
+#### Acceptance criteria
+
+1. `scripts/tune-sim.js` exists as a minimal subprocess driver that accepts a JSON config on `argv[2]`, calls `runAveragedBatch` for both matchups, and emits `{ matchups: [BalanceReport, BalanceReport] }` on stdout. Exits non-zero on missing/invalid config.
+2. `scripts/tune.js` `runSim()` spawns the driver via `execFileSync("node", ["scripts/tune-sim.js", cfg])` instead of calling `runAveragedBatch` in-process. No in-process content re-loading; subprocess boundary is the cache-bust mechanism.
+3. `src/__tests__/tune-sim-driver.test.js` covers the CLI contract (valid config → `{matchups}` shape; determinism; exits non-zero on missing argv / bad JSON / non-integer fields) AND a **regression canary** that mutates `content/moves/engineer.json` on disk between two driver invocations and asserts the engineerWinRate shifts by >10pp. The canary fails fast if the cache bug ever regresses.
+4. `CLAUDE.md` Tuning harness subsection documents the subprocess boundary and its rationale (root cause + why it's load-bearing, not scaffolding).
+5. `ROADMAP.md` carries retcon notes on Phases 2.2b, 2.2c, and 2.2d pointing to 2.2e as the actual root cause of those ceilings.
+6. All existing tests stay green. A fresh `npm run tune:dry-run` exits cleanly. A fresh `npm run tune:llm` produces ≥1 accepted bundle — verified 2026-04-15 with commit `2902d35` (REJECT SUBMITTAL nerf + SUBMIT RFI buff; worstDistance 38.63 → 36.93).
+
+#### Locked decisions
+
+- **Subprocess is the fix, not a stopgap.** Refactoring `ENGINEER`/`CONTRACTOR`/`GAME` from module-init consts into factory-call loaders would touch ~10 files of shared runtime code (game UI + reducer + logic + policies) to solve a tune-only problem. Subprocess is one `scripts/tune-sim.js` file, and it gives crash isolation and a clean seam for a future remote sim worker as free bonuses. Per-call content loaders are parked — not rejected, but not needed unless a new use case justifies the refactor.
+- **Driver stays minimal.** `scripts/tune-sim.js` has no retries, no caching, no parallelism. Its only job is "fresh Node process + one sim + stdout". Complexity lives one layer up in the loop.
+- **Config passes on argv, result on stdout.** Matches the existing `simulate.js` style. No temp files. `maxBuffer` set to 16MB for headroom; reports are small.
+- **`balance-baseline.json` and `npm run sim` are unaffected.** Those are human-authored commands already running in their own process; no cache issue. Only the tune harness's mid-run `runSim` needed the boundary.
+
+#### Components built / modified
+
+- Created: `scripts/tune-sim.js` (commit `0d756e0`).
+- Modified: `scripts/tune.js` `runSim()` to spawn the driver (commit `0d756e0`).
+- Created: `src/__tests__/tune-sim-driver.test.js` — 6 tests: 5 CLI-contract + 1 regression canary.
+- Modified: `CLAUDE.md` — Tuning harness subsection documents the subprocess boundary.
+- Modified: `ROADMAP.md` — this section + retcons on 2.2b/2.2c/2.2d.
+
+#### Dependencies added
+
+None.
+
+#### Out of scope for Phase 2.2e
+
+- Per-call content loaders (parked — no non-tune driver).
+- Baseline regeneration (content shapes unchanged; `balance-baseline.json` is still valid).
+- Proposer-logic changes, step-size changes, `isImprovement` changes.
+- ETIMEDOUT mitigation — the spawnSync timeouts observed in 2.2c/2.2d runs are orthogonal to the cache bug and are scoped as Phase 2.2f below.
+
+#### Open questions (resolved or parked)
+
+- **Is subprocess overhead a concern?** Resolved: no. ~300ms Node startup × 30 iterations = 9s on a 45-minute wall-clock. The CLI call dominates iteration cost by two orders of magnitude.
+- **Should `balance-regression.test.js` also spawn a subprocess?** Parked. It runs once in CI against a committed baseline, not mid-process after a mutation. The in-process import is safe there.
+- **Does the heuristic proposer need the subprocess boundary too?** Yes — the harness calls `runSim()` the same way regardless of proposer. Phase 2.2e fix applies universally; silently blocked heuristic runs from Phase 2.1 onward would have seen the same flat-distance symptom. The heuristic proposer's 1-of-5-iteration acceptance rate in the Phase 2.1 smoke run was misleading — probably driven by residual baseline-edge effects rather than real acceptance.
+
+### Phase 2.2f — Transport timeout + retry (stub)
+
+**Goal:** Stop spawnSync ETIMEDOUT from prematurely exhausting LLM tune runs. Observed in 2.2c and 2.2d production runs (exhausted at iter 4–7).
+
+**Depends on:** Phase 2.2e shipped.
+
+#### Sketch
+
+- Bump `TUNE_TIMEOUT_MS` default from 120s → 240s. Cold-start CLI invocations on Windows occasionally exceed 120s before producing a single token.
+- Single bounded retry in `src/tune/claudeTransport.js` specifically on `err.code === "ETIMEDOUT"` (not on nonzero exit — those are usually prompt or schema errors where retry won't help). Surface retry count in the exhaust-path transport error for diagnostics.
+- No change to the outer loop's retry behavior for `{ok: false}` parse failures — that's a proposer-quality concern, orthogonal to transport reliability.
+
+Out of scope: rate-limit backoff, session-keep-alive, or any change to CLI arg shape.
 
 ## Phase 3 — Bayesian optimization sweep (stub)
 
