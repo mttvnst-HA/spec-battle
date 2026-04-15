@@ -63,29 +63,45 @@ describe("tune-sim driver — CLI contract", () => {
     expect(a).toBe(b);
   });
 
-  it("exits non-zero when argv is missing", () => {
-    expect(() =>
-      execFileSync("node", [driverPath], { encoding: "utf-8", stdio: "pipe" }),
-    ).toThrow();
-  });
-
-  it("exits non-zero on invalid JSON config", () => {
-    expect(() =>
-      execFileSync("node", [driverPath, "{not json"], {
+  // Helper: spawn driver, assert it exits non-zero AND that stderr carries the
+  // driver's own `tune-sim:` error prefix. Using toThrow() alone would mask a
+  // regression where the driver skips validation and errors deep inside the
+  // sim — which is exactly the hygiene gap the validation tightening closes.
+  function expectDriverRejects(args, stderrMatch = /^tune-sim: /m) {
+    let caught;
+    try {
+      execFileSync("node", [driverPath, ...args], {
         encoding: "utf-8",
         stdio: "pipe",
-      }),
-    ).toThrow();
+      });
+    } catch (err) {
+      caught = err;
+    }
+    expect(caught).toBeTruthy();
+    expect(caught.status).not.toBe(0);
+    expect(String(caught.stderr ?? "")).toMatch(stderrMatch);
+  }
+
+  it("exits non-zero with tune-sim prefix when argv is missing", () => {
+    expectDriverRejects([]);
   });
 
-  it("exits non-zero on non-integer startSeed / count / seedChunks", () => {
-    const bad = JSON.stringify({ startSeed: 1.5, count: 25, seedChunks: 1 });
-    expect(() =>
-      execFileSync("node", [driverPath, bad], {
-        encoding: "utf-8",
-        stdio: "pipe",
-      }),
-    ).toThrow();
+  it("exits non-zero with tune-sim prefix on invalid JSON config", () => {
+    expectDriverRejects(["{not json"]);
+  });
+
+  it("exits non-zero with tune-sim prefix on non-integer startSeed", () => {
+    expectDriverRejects([JSON.stringify({ startSeed: 1.5, count: 25, seedChunks: 1 })]);
+  });
+
+  it("exits non-zero with tune-sim prefix on count < 1", () => {
+    expectDriverRejects([JSON.stringify({ startSeed: 1, count: 0, seedChunks: 1 })]);
+    expectDriverRejects([JSON.stringify({ startSeed: 1, count: -5, seedChunks: 1 })]);
+  });
+
+  it("exits non-zero with tune-sim prefix on seedChunks < 1", () => {
+    expectDriverRejects([JSON.stringify({ startSeed: 1, count: 25, seedChunks: 0 })]);
+    expectDriverRejects([JSON.stringify({ startSeed: 1, count: 25, seedChunks: -2 })]);
   });
 });
 
