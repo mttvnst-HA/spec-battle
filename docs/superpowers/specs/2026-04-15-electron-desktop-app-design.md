@@ -10,9 +10,11 @@ Two-process Electron setup:
 
 ```
 electron/
-  main.js      — Main process: BrowserWindow creation, app lifecycle, auto-update
-  preload.js   — contextBridge: exposes app version to renderer
+  main.cjs      — Main process: BrowserWindow creation, app lifecycle, auto-update
+  preload.cjs   — contextBridge: exposes app version to renderer
 ```
+
+Note: `.cjs` extension is required because the project's `package.json` has `"type": "module"`. Without it, Node.js treats `.js` files as ESM and `require()` calls in the Electron process files would throw `ERR_REQUIRE_ESM`.
 
 ### Build Flow
 
@@ -38,8 +40,8 @@ Main process checks `VITE_DEV_SERVER_URL`:
 
 | File | Purpose |
 |------|---------|
-| `electron/main.js` | Main process: window creation, menu removal, auto-update |
-| `electron/preload.js` | contextBridge exposing `{ version }` to renderer |
+| `electron/main.cjs` | Main process: window creation, menu removal, auto-update |
+| `electron/preload.cjs` | contextBridge exposing `{ version }` to renderer |
 | `public/fonts/PressStart2P-Regular.woff2` | Bundled pixel font for offline use |
 | `build/icon.ico` | Windows app icon (generated placeholder — 256x256 pixel-art style) |
 
@@ -47,7 +49,7 @@ Main process checks `VITE_DEV_SERVER_URL`:
 
 | File | Change |
 |------|--------|
-| `package.json` | Add `"main": "electron/main.js"`, dependencies, electron-builder config, new scripts |
+| `package.json` | Add `"main": "electron/main.cjs"`, dependencies, electron-builder config, new scripts |
 | `vite.config.js` | Set `base: './'` for file:// protocol compatibility |
 | `index.html` | Replace Google Fonts CDN link with local `@font-face` |
 
@@ -87,8 +89,8 @@ Vite serves `public/` at root in dev and copies it to `dist/` on build, so this 
 Uses `electron-updater` (part of electron-builder ecosystem):
 
 ```js
-// electron/main.js — after window creation
-import { autoUpdater } from 'electron-updater';
+// electron/main.cjs — after window creation
+const { autoUpdater } = require('electron-updater');
 
 autoUpdater.checkForUpdatesAndNotify();
 ```

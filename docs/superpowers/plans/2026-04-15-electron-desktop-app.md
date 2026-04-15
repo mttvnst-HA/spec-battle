@@ -16,8 +16,8 @@
 
 | File | Action | Responsibility |
 |------|--------|----------------|
-| `electron/main.js` | Create | Main process: window, menu, auto-update, dev/prod URL routing |
-| `electron/preload.js` | Create | contextBridge: expose app version to renderer |
+| `electron/main.cjs` | Create | Main process: window, menu, auto-update, dev/prod URL routing |
+| `electron/preload.cjs` | Create | contextBridge: expose app version to renderer |
 | `public/fonts/PressStart2P-Regular.woff2` | Create | Bundled font for offline Electron use |
 | `build/icon.ico` | Create | Placeholder app icon for Windows |
 | `index.html` | Modify | Replace CDN font link with local @font-face |
@@ -197,29 +197,30 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 
 ### Task 3: Create the Electron preload script
 
-The preload script bridges Electron's main process and the renderer. It exposes the app version to the renderer via `contextBridge`. This is written first because `main.js` references it.
+The preload script bridges Electron's main process and the renderer. It exposes the app version to the renderer via `contextBridge`. This is written first because `main.cjs` references it.
 
 **Files:**
-- Create: `electron/preload.js`
+- Create: `electron/preload.cjs`
 
 - [ ] **Step 1: Create the preload script**
 
-Create `electron/preload.js`:
+Create `electron/preload.cjs`:
 
 ```js
 const { contextBridge } = require('electron');
+const { version } = require('../package.json');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  version: process.env.npm_package_version || 'dev',
+  version,
 });
 ```
 
-Note: preload scripts use CommonJS (`require`) — they run in a sandboxed Node context, not the ESM renderer. Electron's preload does not support ESM `import` syntax.
+Note: the `.cjs` extension is required because the project's `package.json` has `"type": "module"`, which makes Node.js treat `.js` files as ESM. Electron's preload does not support ESM `import` syntax — it must use `require()`, so the file must be explicitly `.cjs`. The version is read from `package.json` directly rather than `process.env.npm_package_version`, which is only set when running via `npm run` and would be `undefined` in the packaged app.
 
 - [ ] **Step 2: Commit**
 
 ```bash
-git add electron/preload.js
+git add electron/preload.cjs
 git commit -m "feat(electron): add preload script exposing app version
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
@@ -232,11 +233,11 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 The main process creates the BrowserWindow, removes the menu bar, routes to the dev server or built files, and wires up auto-update.
 
 **Files:**
-- Create: `electron/main.js`
+- Create: `electron/main.cjs`
 
-- [ ] **Step 1: Create electron/main.js**
+- [ ] **Step 1: Create electron/main.cjs**
 
-Create `electron/main.js`:
+Create `electron/main.cjs`:
 
 ```js
 const { app, BrowserWindow, Menu } = require('electron');
@@ -262,7 +263,7 @@ function createWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
     },
   });
 
@@ -288,12 +289,12 @@ app.on('window-all-closed', () => {
 });
 ```
 
-Note: like the preload, the main process uses CommonJS. Electron's main process does not reliably support `"type": "module"` from the host `package.json` — it uses its own module system. `require()` is correct here.
+Note: the `.cjs` extension is required because the project's `package.json` has `"type": "module"`. Node.js treats `.js` files as ESM in that context, and `require()` would throw `ERR_REQUIRE_ESM`. The `.cjs` extension forces CommonJS regardless of the package type.
 
 - [ ] **Step 2: Commit**
 
 ```bash
-git add electron/main.js
+git add electron/main.cjs
 git commit -m "feat(electron): add main process with window, menu, auto-update
 
 800x600 non-resizable window. Loads Vite dev server (VITE_DEV_SERVER_URL)
@@ -313,78 +314,90 @@ electron-builder requires an icon for the Windows installer and executable.
 
 - [ ] **Step 1: Generate a placeholder ICO file**
 
-We need a valid `.ico` file. Generate a minimal 16x16 green-on-black placeholder using Node.js (no external dependencies):
+We need a valid `.ico` file at 256x256 (electron-builder's recommended minimum for NSIS installers, taskbar, and Add/Remove Programs). Generate a green "SB" block-letter icon on black using Node.js (no external dependencies):
 
 ```bash
 mkdir -p build
 node -e "
-// Minimal 16x16 32-bit ICO: green 'S' on black background
-// ICO header (6 bytes) + 1 entry (16 bytes) + BMP DIB (40 bytes) + pixels (1024 bytes) + AND mask (64 bytes)
-const W = 16, H = 16;
-const pixels = Buffer.alloc(W * H * 4, 0); // BGRA, all black
+const fs = require('fs');
 
-// Draw a green 'S' pattern
-const green = [0x88, 0xff, 0x00, 0xff]; // BGRA: #00ff88
-const coords = [
-  // top bar
-  [4,2],[5,2],[6,2],[7,2],[8,2],[9,2],[10,2],[11,2],
-  // left side upper
-  [3,3],[3,4],[3,5],
-  // middle bar
-  [4,6],[5,6],[6,6],[7,6],[8,6],[9,6],[10,6],[11,6],
-  // right side lower
-  [12,7],[12,8],[12,9],[12,10],
-  // bottom bar
-  [4,11],[5,11],[6,11],[7,11],[8,11],[9,11],[10,11],[11,11],
-  // left side lower connect
-  [3,10],
-  // right side upper connect
-  [12,3],
-];
-for (const [x, y] of coords) {
-  // ICO BMP stores rows bottom-to-top
-  const row = (H - 1 - y);
-  const off = (row * W + x) * 4;
-  pixels[off] = green[0]; pixels[off+1] = green[1]; pixels[off+2] = green[2]; pixels[off+3] = green[3];
+// 256x256 32-bit ICO: green 'SB' block letters on black (#0a0e14)
+const W = 256, H = 256;
+const pixels = Buffer.alloc(W * H * 4); // BGRA
+
+// Fill background with game bg color #0a0e14
+const bg = [0x14, 0x0e, 0x0a, 0xff]; // BGRA
+for (let i = 0; i < W * H; i++) {
+  pixels[i*4] = bg[0]; pixels[i*4+1] = bg[1]; pixels[i*4+2] = bg[2]; pixels[i*4+3] = bg[3];
 }
 
-const andMask = Buffer.alloc(H * Math.ceil(W / 8 / 4) * 4, 0); // all opaque
+const green = [0x88, 0xff, 0x00, 0xff]; // BGRA: #00ff88
 
-// BMP InfoHeader (BITMAPINFOHEADER)
+function fillRect(x, y, w, h) {
+  for (let dy = 0; dy < h; dy++) {
+    for (let dx = 0; dx < w; dx++) {
+      const px = x + dx, py = y + dy;
+      if (px >= 0 && px < W && py >= 0 && py < H) {
+        // ICO BMP stores rows bottom-to-top
+        const row = (H - 1 - py);
+        const off = (row * W + px) * 4;
+        pixels[off] = green[0]; pixels[off+1] = green[1]; pixels[off+2] = green[2]; pixels[off+3] = green[3];
+      }
+    }
+  }
+}
+
+// Block size for pixel-art feel (16px blocks on 256 grid)
+const B = 16;
+
+// 'S' letter — left half (x: 2B to 7B, y: 3B to 13B)
+fillRect(2*B, 3*B, 5*B, B);    // top bar
+fillRect(2*B, 4*B, B, 2*B);    // left upper
+fillRect(2*B, 6*B, 5*B, B);    // middle bar
+fillRect(6*B, 7*B, B, 2*B);    // right lower
+fillRect(2*B, 9*B, 5*B, B);    // bottom bar
+
+// 'B' letter — right half (x: 9B to 14B, y: 3B to 10B)
+fillRect(9*B, 3*B, B, 7*B);    // left vertical
+fillRect(10*B, 3*B, 4*B, B);   // top bar
+fillRect(13*B, 4*B, B, B);     // right upper top
+fillRect(10*B, 6*B, 3*B, B);   // middle bar
+fillRect(13*B, 7*B, B, 2*B);   // right lower
+fillRect(10*B, 9*B, 4*B, B);   // bottom bar
+
+const andMask = Buffer.alloc(H * Math.ceil(W / 8 / 4) * 4, 0);
+
 const dib = Buffer.alloc(40);
-dib.writeUInt32LE(40, 0);       // header size
-dib.writeInt32LE(W, 4);         // width
-dib.writeInt32LE(H * 2, 8);     // height (doubled for ICO: image + mask)
-dib.writeUInt16LE(1, 12);       // planes
-dib.writeUInt16LE(32, 14);      // bpp
-dib.writeUInt32LE(0, 20);       // image size (can be 0 for BI_RGB)
+dib.writeUInt32LE(40, 0);
+dib.writeInt32LE(W, 4);
+dib.writeInt32LE(H * 2, 8);
+dib.writeUInt16LE(1, 12);
+dib.writeUInt16LE(32, 14);
 
 const imageData = Buffer.concat([dib, pixels, andMask]);
 
-// ICO header
 const header = Buffer.alloc(6);
-header.writeUInt16LE(0, 0);     // reserved
-header.writeUInt16LE(1, 2);     // type: ICO
-header.writeUInt16LE(1, 4);     // count: 1 image
+header.writeUInt16LE(0, 0);
+header.writeUInt16LE(1, 2);
+header.writeUInt16LE(1, 4);
 
-// ICO directory entry
 const entry = Buffer.alloc(16);
-entry[0] = W;                   // width
-entry[1] = H;                   // height
-entry[2] = 0;                   // palette
-entry[3] = 0;                   // reserved
-entry.writeUInt16LE(1, 4);      // planes
-entry.writeUInt16LE(32, 6);     // bpp
-entry.writeUInt32LE(imageData.length, 8);  // size
-entry.writeUInt32LE(6 + 16, 12);           // offset
+entry[0] = 0; // 0 means 256 in ICO format
+entry[1] = 0;
+entry[2] = 0;
+entry[3] = 0;
+entry.writeUInt16LE(1, 4);
+entry.writeUInt16LE(32, 6);
+entry.writeUInt32LE(imageData.length, 8);
+entry.writeUInt32LE(6 + 16, 12);
 
 const ico = Buffer.concat([header, entry, imageData]);
-require('fs').writeFileSync('build/icon.ico', ico);
+fs.writeFileSync('build/icon.ico', ico);
 console.log('icon.ico written:', ico.length, 'bytes');
 "
 ```
 
-Expected: `build/icon.ico` created, ~1.1 KB.
+Expected: `build/icon.ico` created, ~262 KB (256x256 uncompressed BMP).
 
 - [ ] **Step 2: Verify the file is a valid ICO**
 
@@ -400,7 +413,7 @@ Expected: file exists and is > 0 bytes.
 git add build/icon.ico
 git commit -m "feat(electron): add placeholder app icon
 
-16x16 green 'S' on black. Replace with proper pixel art later.
+256x256 green 'SB' on game bg. Replace with proper pixel art later.
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ```
@@ -421,7 +434,7 @@ Add `"main": "electron/main.js"` to `package.json` right after the `"type": "mod
 The field goes at the top level, after `"type"`:
 
 ```json
-"main": "electron/main.js",
+"main": "electron/main.cjs",
 ```
 
 - [ ] **Step 2: Add dependencies**
