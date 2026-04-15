@@ -37,8 +37,8 @@
     "emoji": "⏳",
     "desc": "Float manipulation and critical path warfare",
     "dmg": [
-      21,
-      33
+      22,
+      34
     ],
     "mp": 10,
     "effect": "slow"
