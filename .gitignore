@@ -8,3 +8,7 @@ balance-baseline.next.json
 
 # Dialog authoring scratch
 scratch/
+
+# Raw reference PDFs (source inputs for docs/dialog-source-material.md;
+# keep local-only, the distilled doc is the tracked artifact)
+reference/*.pdf

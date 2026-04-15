@@ -1,14 +1,15 @@
 #!/usr/bin/env node
-// Variant of fill.js that pushes the tone dial toward comedy while preserving
-// domain specificity. Writes to scratch/dialog-candidates.json (replacing any
-// prior entries for the targeted buckets). Use for "sample first, then full
-// regen" flow.
+// Bucket-targeted dialog authoring tool. Enumerates (attacker-move, prior-move)
+// counter pairings, batches them into focused Opus calls ("author N lines for
+// each of these K buckets"), and merges results into scratch/dialog-candidates.json
+// for human curation. The Opus prompt embeds a rigid tone spec (punchy
+// one-liners, ≤3 commas, setup-punch rhythm) matching the App.jsx-era voice.
 //
 // Usage:
 //   node scripts/dialog-author/fill-silly.js --side=both [--count=3] [--batch=8]
 //     [--sample-only=3]   # only generate the first N buckets per side (for tone review)
 //   node scripts/dialog-author/fill-silly.js --side=both --include-shipped
-//     # also overwrite the 13 already-shipped counter buckets
+//     # also overwrite counter buckets that already have curated content shipped
 
 import fs from "node:fs";
 import { createCliTransport } from "../../src/tune/claudeTransport.js";

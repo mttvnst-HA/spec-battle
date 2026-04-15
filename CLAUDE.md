@@ -100,13 +100,14 @@ Reducer state carries `engLastMove` and `conLastMove` (both `string | null`, cle
 ### Authoring pipeline
 
 Dev-time only, under `scripts/dialog-author/`:
-- `research.js` → produces `docs/dialog-source-material.md` (committed once curated; not yet in the repo as of D1 ship).
+- `research.js` → produces `docs/dialog-source-material.md` (committed — the distilled NAVFAC/FAR corpus that seeds every downstream prompt).
 - `roleplay.js` → one multi-turn in-character session → `scratch/dialog-transcripts/session-<ts>.json` (gitignored).
 - `mine.js` → aggregates transcripts → `scratch/dialog-candidates.json` (gitignored).
+- `fill-silly.js` → bucket-targeted authoring (enumerates `(attacker-move, prior-move)` counter pairings and batches them into focused Opus calls with a rigid tone spec). Writes to `scratch/dialog-candidates.json`. This is the primary authoring tool post-PR #8 — `roleplay.js` and `mine.js` remain for free-form corpus generation when a broader tone exploration is wanted.
+- `coverage.js` → reports `vs_*` bucket populate state. Use to target thin areas in subsequent `fill-silly.js` runs.
 - Human curation → curated lines moved into `content/quotes/*.json`.
-- `coverage.js` → reports `vs_*` bucket populate state. Use to target thin areas in subsequent role-play runs.
 
-All four scripts use `src/tune/claudeTransport.js` for Claude CLI calls. `TUNE_CLAUDE_BIN` / `TUNE_MODEL` / `TUNE_TIMEOUT_MS` env vars apply the same way as for the tuning harness. No runtime LLM — the curated static JSON is the shipping artifact.
+All five scripts use `src/tune/claudeTransport.js` for Claude CLI calls. `TUNE_CLAUDE_BIN` / `TUNE_MODEL` / `TUNE_TIMEOUT_MS` env vars apply the same way as for the tuning harness. No runtime LLM — the curated static JSON is the shipping artifact.
 
 ## Content Pipeline
 
