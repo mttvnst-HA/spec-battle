@@ -6,3 +6,4 @@
 warning: in the working copy of 'content/game.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'content/moves/contractor.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'content/moves/engineer.json', LF will be replaced by CRLF the next time Git touches it
+[tune] iter 2: Lower REJECT SUBMITTAL dmg — most-used move at 32%, pulling engineer DPT down
