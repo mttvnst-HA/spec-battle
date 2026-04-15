@@ -39,7 +39,7 @@ function defaultExec({ prompt, model, timeoutMs, executable }) {
 export function createCliTransport({
   exec = defaultExec,
   model = "claude-sonnet-4-6",
-  timeoutMs = 120_000,
+  timeoutMs = 240_000,
   executable = "claude",
 } = {}) {
   return {
@@ -47,7 +47,30 @@ export function createCliTransport({
       if (typeof prompt !== "string" || prompt.length === 0) {
         throw new Error("claudeTransport.send: prompt must be a non-empty string");
       }
-      return exec({ prompt, model, timeoutMs, executable });
+      const opts = { prompt, model, timeoutMs, executable };
+      try {
+        return exec(opts);
+      } catch (err) {
+        // Phase 2.2f: retry once iff the error is a confirmed timeout
+        // (err.code === "ETIMEDOUT", set by Node's spawnSync/execFileSync
+        // when the timeout expires). Nonzero-exit errors are usually
+        // prompt/schema problems where retry won't help. Signal-only
+        // SIGTERMs (no .code) are broader kernel-kills and intentionally
+        // do not retry either.
+        if (!err || err.code !== "ETIMEDOUT") throw err;
+        try {
+          return exec(opts);
+        } catch (err2) {
+          // Annotate the second-timeout message so
+          // tuning-summary.md's "Last transport error" section shows the
+          // retry actually happened. Preserve .code and .signal so any
+          // downstream caller can still detect the timeout.
+          const annotated = new Error(`${err2.message} (after 1 retry)`);
+          annotated.code = err2.code;
+          annotated.signal = err2.signal;
+          throw annotated;
+        }
+      }
     },
   };
 }

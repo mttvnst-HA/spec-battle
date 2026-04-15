@@ -12,7 +12,7 @@
 // Env vars:
 //   TUNE_PROPOSER    — "heuristic" (default) | "llm"
 //   TUNE_MODEL       — LLM model ID (default claude-sonnet-4-6); only used when proposer=llm
-//   TUNE_TIMEOUT_MS  — per-CLI-call timeout (default 120000); only used when proposer=llm
+//   TUNE_TIMEOUT_MS  — per-CLI-call timeout (default 240000); only used when proposer=llm
 //   TUNE_CLAUDE_BIN  — path to the `claude` CLI executable (default "claude", resolved via PATH).
 //                      Set to an absolute path on machines where Claude Code is bundled with the
 //                      desktop app but not on PATH (e.g. on Windows,
@@ -96,7 +96,7 @@ function selectProposer() {
   if (kind === "heuristic") return createHeuristicAdapter(heuristicPropose);
   if (kind === "llm") {
     const model = process.env.TUNE_MODEL ?? "claude-sonnet-4-6";
-    const timeoutMs = Number(process.env.TUNE_TIMEOUT_MS ?? 120_000);
+    const timeoutMs = Number(process.env.TUNE_TIMEOUT_MS ?? 240_000);
     const executable = process.env.TUNE_CLAUDE_BIN ?? "claude";
     return createLlmProposer({ transport: createCliTransport({ model, timeoutMs, executable }) });
   }

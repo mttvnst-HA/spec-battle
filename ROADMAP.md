@@ -395,19 +395,43 @@ None.
 - **Should `balance-regression.test.js` also spawn a subprocess?** Parked. It runs once in CI against a committed baseline, not mid-process after a mutation. The in-process import is safe there.
 - **Does the heuristic proposer need the subprocess boundary too?** Yes — the harness calls `runSim()` the same way regardless of proposer. Phase 2.2e fix applies universally; silently blocked heuristic runs from Phase 2.1 onward would have seen the same flat-distance symptom. The heuristic proposer's 1-of-5-iteration acceptance rate in the Phase 2.1 smoke run was misleading — probably driven by residual baseline-edge effects rather than real acceptance.
 
-### Phase 2.2f — Transport timeout + retry (stub)
+### Phase 2.2f — Transport timeout + bounded retry
 
-**Goal:** Stop spawnSync ETIMEDOUT from prematurely exhausting LLM tune runs. Observed in 2.2c and 2.2d production runs (exhausted at iter 4–7).
+**Goal:** Stop spawnSync ETIMEDOUT from prematurely exhausting LLM tune runs. Production runs in 2.2c and 2.2d both exited `"exhausted"` on a single unlucky timeout (iter 7 and iter 4), with no mechanism to recover. Make the transport tolerant to one cold-start slow call without bloating the outer loop.
 
 **Depends on:** Phase 2.2e shipped.
 
-#### Sketch
+#### What changed
 
-- Bump `TUNE_TIMEOUT_MS` default from 120s → 240s. Cold-start CLI invocations on Windows occasionally exceed 120s before producing a single token.
-- Single bounded retry in `src/tune/claudeTransport.js` specifically on `err.code === "ETIMEDOUT"` (not on nonzero exit — those are usually prompt or schema errors where retry won't help). Surface retry count in the exhaust-path transport error for diagnostics.
-- No change to the outer loop's retry behavior for `{ok: false}` parse failures — that's a proposer-quality concern, orthogonal to transport reliability.
+- Bumped default `timeoutMs` from 120s → 240s in both `src/tune/claudeTransport.js` (`createCliTransport` default arg) and `scripts/tune.js` (the env-var fallback on the `TUNE_TIMEOUT_MS` read). Cold-start `claude.exe` invocations on Windows occasionally exceed 120s before producing a single token; the 2.2c/2.2d production runs confirm this. 240s gives a ~2× headroom without blowing the 45-minute wall-clock budget.
+- Added a **single bounded retry** inside `createCliTransport.send()`, keyed strictly on `err.code === "ETIMEDOUT"`. Nonzero-exit errors (prompt validation, schema errors, ENOENT) do not retry — retrying them just burns budget. Signal-only SIGTERMs without `.code` also do not retry — those are broader kernel-kill cases, not confirmed timeouts.
+- On a second timeout, the re-thrown error carries a ` (after 1 retry)` suffix in its `.message` and preserves `.code`/`.signal`. The suffix flows through `llmProposer.lastError` → `loop.js` finalize → `tuning-summary.md`'s `## Last transport error` section, so post-mortem diagnostics distinguish "one fluke timeout" from "sustained CLI hang".
+- No changes to `loop.js`, `llmProposer.js`, or the `{ok:false}` parse-failure retry path (that's a proposer-quality concern, orthogonal to transport reliability).
 
-Out of scope: rate-limit backoff, session-keep-alive, or any change to CLI arg shape.
+#### Components built / modified
+
+- Modified: `src/tune/claudeTransport.js` — default timeout + retry branch (~17 lines added).
+- Modified: `src/__tests__/tune-claudeTransport.test.js` — expectation bump on default-timeout test; 3 new tests (retry-succeeds, retry-fails-with-suffix, no-retry-on-non-timeout) + a call-count guard on the existing signal-only SIGTERM test. 9 tests total, all green.
+- Modified: `scripts/tune.js` — default-timeout fallback bumped.
+- Modified: `CLAUDE.md` — Tuning harness > LLM proposer subsection documents the 240s default, retry semantics, and the ` (after 1 retry)` annotation surfacing.
+
+#### Dependencies added
+
+None.
+
+#### Out of scope for Phase 2.2f
+
+- Rate-limit / 429 backoff. Not observed in production runs, not what's killing exhausted paths today.
+- Session keep-alive to pre-warm the CLI (orthogonal; would help but is a larger refactor).
+- Any change to CLI arg shape, `--output-format`, or the `-p`-over-stdin approach.
+- Outer-loop behavior on `{ok:false}` parse failures — unchanged from Phase 2.2b.
+- Updating dialog-author script timeout defaults (`research.js`/`roleplay.js`/`fill-silly.js`). They inherit the retry for free via the shared transport, which is a nice side effect, but their own 180s/600s defaults are already generous and serve a different use case.
+
+#### Open questions (resolved or parked)
+
+- **Why strict `err.code === "ETIMEDOUT"` instead of a broader "any timeout-ish error" check?** Resolved. Node's `spawnSync`/`execFileSync` sets `.code = "ETIMEDOUT"` when the declared `timeout` option expires — that's the narrow, provable timeout. A child getting SIGTERM for other reasons (external kill, OS-level termination) shouldn't trigger retry, because retrying just wastes budget against a host-level problem.
+- **Should the retry count be configurable?** Parked. One retry handles the observed cold-start spike; a retry loop invites mask-the-real-problem anti-patterns. Revisit if production runs show patterns of 2+ consecutive ETIMEDOUTs per iteration.
+- **Does the annotated error need structured fields instead of a string suffix?** Parked. `lastError` is a `string` at every downstream consumer (proposer getter, loop summary writer, CLI log line). A suffix is the minimal-churn way to signal "retry happened" without a schema change.
 
 ## Phase 3 — Bayesian optimization sweep (stub)
 
