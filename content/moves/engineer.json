@@ -59,8 +59,8 @@
     "emoji": "⏰",
     "desc": "10-day countdown or face termination",
     "dmg": [
-      38,
-      55
+      37,
+      54
     ],
     "mp": 28,
     "effect": "stun"
