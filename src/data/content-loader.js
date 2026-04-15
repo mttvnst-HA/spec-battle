@@ -1,4 +1,5 @@
 import { C, GAME, pick } from "../constants.js";
+import { vsKey } from "../game/dialog.js";
 
 // Import JSON content
 import engineerMoves from "../../content/moves/engineer.json" with { type: "json" };
@@ -15,10 +16,6 @@ const COLOR_MAP = {
 
 function resolveColor(name) {
   return COLOR_MAP[name] || C.white;
-}
-
-function vsKey(moveName) {
-  return "vs_" + moveName.replace(/[ -]/g, "_");
 }
 
 // Convert either a flat-array legacy value or an object-shape value into a
