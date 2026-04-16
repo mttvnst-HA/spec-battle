@@ -16,7 +16,7 @@ export default function SpecBattleRPG() {
         @keyframes rpg-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
       `}</style>
       <div style={{
-        background: C.bg, width: "100%", height: "100vh", maxWidth: 800, margin: "0 auto",
+        background: C.bg, width: "100%", height: "100vh", margin: "0 auto",
         position: "relative", overflow: "hidden",
       }}>
         <div style={{

@@ -15,7 +15,7 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 800,
     height: 600,
-    resizable: false,
+    resizable: true,
     title: 'SPEC BATTLE',
     backgroundColor: '#0a0e14',
     webPreferences: {
