@@ -180,7 +180,7 @@ npx vitest run src/__tests__/content-integrity.test.js  # Run one test file
 | `tune-convergence` | Pure convergence math: band check, improvement gate, 2pp guard |
 | `tune-applyProposal` | Bundle write/revert against `content/game.json` + moves files; transactional mid-write rollback |
 | `tune-proposer` | 6-rule round-robin heuristic library; shape + step-size invariants (relaxed in Phase 2.2a) |
-| `tune-gitOps` | Commit-wrapper escaping (shell metacharacters); injectable exec |
+| `tune-gitOps` | Commit wrapper runs git via argv (no shell) so LLM-authored messages cannot inject commands; injectable exec |
 | `tune-loop` | Orchestrator: convergence, budget, kill-switch, improvement gating, bounded retry, write-failed/invalid-output outcomes, worstDistanceCandidate capture, transport-error surfacing |
 | `tune-claudeTransport` | createCliTransport fake-exec: success, nonzero exit, timeout, input validation, ETIMEDOUT bounded retry (success, double-timeout w/ suffix, retry-then-non-timeout unchanged) |
 | `tune-llmProposer-prompt` | buildPrompt shape: static prefix, content embedding, history with deltas, retry context, candidate-distance in history |
