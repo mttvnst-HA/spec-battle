@@ -1,0 +1,11 @@
+{
+  "name": "minimatch",
+  "version": "11.0.3-compat.1",
+  "private": true,
+  "description": "Compatibility wrapper that serves minimatch 11 to electron-builder's older dependencies. See README.md.",
+  "main": "index.js",
+  "license": "ISC",
+  "dependencies": {
+    "minimatch-v11": "npm:minimatch@^11.0.3"
+  }
+}
